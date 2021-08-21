@@ -11,7 +11,7 @@ from pygraphblas.base import NoValue
 
 
 class Edge(NamedTuple):
-    """An edge between two graph nodes."""
+    """An hyperedge between two graph nodes."""
 
     relation: object
     subject: object
