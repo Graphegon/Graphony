@@ -14,13 +14,13 @@ class Edge(NamedTuple):
     """An hyperedge between two graph nodes."""
 
     relation: object
-    subject: object
-    object: object
+    src: object
+    dest: object
     weight: object = True
     id: int = None
 
     def __repr__(self):
-        return f"<{self.relation}({self.subject} -> {self.object}: {self.weight})>"
+        return f"<{self.relation}({self.src} -> {self.dest}: {self.weight})>"
 
 
 class Relation:
@@ -56,7 +56,7 @@ class Graph:
     matrix stores a property relation between graph edges.
 
     Each unique relation is stored as an adjacency matrix from
-    subjects to objects.  To demonstrate, first create a helper
+    srcs to dests.  To demonstrate, first create a helper
     function `p()` that will iterate results into a list and "pretty
     print" them.
 
@@ -71,12 +71,12 @@ class Graph:
     Relation tuples can be added directly into the Graph with the `+=`
     method.
 
-    >>> G += ('bob', 'friend', 'alice')
-    >>> G += ('alice', 'friend', 'jane')
+    >>> G += ('friend', 'bob', 'alice')
+    >>> G += ('friend', 'alice', 'jane')
 
     Or an iterator of relation tuples can be provided:
 
-    >>> G += [('bob', 'coworker', 'jane'), ('tim', 'friend', 'bob')]
+    >>> G += [('coworker', 'bob', 'jane'), ('friend', 'tim', 'bob')]
 
     Inspecting G shows that it has two columns and four edges:
 
@@ -84,8 +84,8 @@ class Graph:
     <Graph [friend, coworker]: 4>
 
     The graph can then be called like `G(...)` to query it.  A query
-    consists of three optional arguments for `subject`, `relation`
-    and `object`.  The default value for all three is None, which acts
+    consists of three optional arguments for `src`, `relation`
+    and `dest`.  The default value for all three is None, which acts
     as a wildcard to matches all values.
 
     >>> p(G())
@@ -94,9 +94,9 @@ class Graph:
      <friend(bob -> alice: True)>,
      <friend(tim -> bob: True)>]
 
-    Only print relations where `bob` is the subject:
+    Only print relations where `bob` is the src:
 
-    >>> p(G(subject='bob'))
+    >>> p(G(src='bob'))
     [<coworker(bob -> jane: True)>, <friend(bob -> alice: True)>]
 
     Only print relations where `coworker` is the relation:
@@ -104,9 +104,9 @@ class Graph:
     >>> p(G(relation='coworker'))
     [<coworker(bob -> jane: True)>]
 
-    Only print relations where `jane` is the object:
+    Only print relations where `jane` is the dest:
 
-    >>> p(G(object='jane'))
+    >>> p(G(dest='jane'))
     [<coworker(bob -> jane: True)>, <friend(alice -> jane: True)>]
 
     Relations are accessible as attributes of the graph:
@@ -123,8 +123,8 @@ class Graph:
      <friend(bob -> alice: True)>,
      <friend(tim -> bob: True)>]
 
-    >>> G += [('bob', 'distance', 'alice', 42),
-    ...       ('alice', 'distance', 'jane', 420)]
+    >>> G += [('distance', 'bob', 'alice', 42),
+    ...       ('distance', 'alice', 'jane', 420)]
 
     >>> p(list(G))
     [<coworker(bob -> jane: True)>,
@@ -185,15 +185,15 @@ class Graph:
             raise KeyError(key)
         return id
 
-    def _add(self, relation, subject, object, weight=True, eid=None):
+    def _add(self, relation, src, dest, weight=True, eid=None):
         """Add a triple to the graph with an optional weight."""
         if not relation.isidentifier() or relation.startswith("_"):
             assert NameError(
                 "relation name must start with a letter, "
                 "and can only contain letters, numbers, and underscores"
             )
-        sid = self._upsert_node(subject)
-        oid = self._upsert_node(object)
+        sid = self._upsert_node(src)
+        oid = self._upsert_node(dest)
         if relation not in self._relations:
             self._relations[relation] = Relation(self, relation, type(weight))
 
@@ -230,50 +230,50 @@ class Graph:
     def __iter__(self):
         return self(weighted=True)
 
-    def __call__(self, subject=None, relation=None, object=None, weighted=False):
+    def __call__(self, src=None, relation=None, dest=None, weighted=False):
         """Query the graph for matching triples.
 
-        Subject, relation, and/or object values can be provided, and
+        Src, relation, and/or dest values can be provided, and
         triples that match the given values will be returned.  Passing
         no values will iterate all triples.
 
         """
         weight = True
-        if subject is not None:  # subject,?,?
-            sid = self[subject]
-            if relation is not None:  # subject,relation,?
+        if src is not None:  # src,?,?
+            sid = self[src]
+            if relation is not None:  # src,relation,?
                 rel = self._relations[relation]
 
-                if object is not None:  # subject,relation,object
-                    oid = self[object]
+                if dest is not None:  # src,relation,dest
+                    oid = self[dest]
                     eids = rel._BT[oid]
                     for eid, _ in eids:
                         if weighted:
                             weight = rel._B[eid, oid]
                         yield Edge(
                             rel._name,
-                            subject,
-                            object,
+                            src,
+                            dest,
                             weight,
                             eid,
                         )
 
-                else:  # subject,relation,None
+                else:  # src,relation,None
                     adj = rel._B.type.any_secondi(self._A, rel._B)
                     for oid, eid in adj[sid]:
-                        object = self._get_node_name(oid)
+                        dest = self._get_node_name(oid)
                         if weighted:
                             weight = rel._B[eid, oid]
                         yield Edge(
                             rel._name,
-                            subject,
-                            object,
+                            src,
+                            dest,
                             weight,
                             eid,
                         )
             else:
-                if object is not None:  # subject,None,object
-                    oid = self[object]
+                if dest is not None:  # src,None,dest
+                    oid = self[dest]
                     for relation, rel in self._relations.items():
                         try:
                             adj = INT64.any_secondi(self._A, rel._B)
@@ -282,26 +282,26 @@ class Graph:
                                 weight = rel._B[eid, oid]
                             yield Edge(
                                 rel._name,
-                                subject,
-                                object,
+                                src,
+                                dest,
                                 weight,
                                 eid,
                             )
                         except NoValue:
                             continue
 
-                else:  # subject,None,None
+                else:  # src,None,None
                     for relation, rel in self._relations.items():
                         try:
                             adj = INT64.any_secondi(self._A, rel._B)
                             for oid, eid in adj[sid]:
                                 if weighted:
                                     weight = rel._B[eid, oid]
-                                object = self._get_node_name(oid)
+                                dest = self._get_node_name(oid)
                                 yield Edge(
                                     rel._name,
-                                    subject,
-                                    object,
+                                    src,
+                                    dest,
                                     weight,
                                     eid,
                                 )
@@ -311,14 +311,14 @@ class Graph:
         elif relation is not None:  # None,relation,?
             rel = self._relations[relation]
             adj = INT64.any_secondi(self._A, rel._B)
-            if object is not None:  # None,relation,object
-                oid = self[object]
+            if dest is not None:  # None,relation,dest
+                oid = self[dest]
                 for sid, eid in adj[:, oid]:
-                    subject = self._get_node_name(sid)
+                    src = self._get_node_name(sid)
                     yield Edge(
                         rel._name,
-                        subject,
-                        object,
+                        src,
+                        dest,
                         weight,
                         eid,
                     )
@@ -326,29 +326,29 @@ class Graph:
                 for sid, oid, eid in adj:
                     if weighted:
                         weight = rel._B[eid, oid]
-                    subject = self._get_node_name(sid)
-                    object = self._get_node_name(oid)
+                    src = self._get_node_name(sid)
+                    dest = self._get_node_name(oid)
                     yield Edge(
                         rel._name,
-                        subject,
-                        object,
+                        src,
+                        dest,
                         weight,
                         eid,
                     )
 
-        elif object is not None:  # None,None,object
-            oid = self[object]
+        elif dest is not None:  # None,None,dest
+            oid = self[dest]
             for relation, rel in self._relations.items():
                 try:
                     adj = INT64.any_secondi(self._A, rel._B)
                     for sid, eid in adj[:, oid]:
-                        subject = self._get_node_name(sid)
+                        src = self._get_node_name(sid)
                         if weighted:
                             weight = rel._B[eid, oid]
                         yield Edge(
                             rel._name,
-                            subject,
-                            object,
+                            src,
+                            dest,
                             weight,
                             eid,
                         )
@@ -361,12 +361,12 @@ class Graph:
                 for sid, oid, eid in adj:
                     if weighted:
                         weight = rel._B[eid, oid]
-                    subject = self._get_node_name(sid)
-                    object = self._get_node_name(oid)
+                    src = self._get_node_name(sid)
+                    dest = self._get_node_name(oid)
                     yield Edge(
                         rel._name,
-                        subject,
-                        object,
+                        src,
+                        dest,
                         weight,
                         eid,
                     )

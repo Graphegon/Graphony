@@ -32,9 +32,10 @@ Graphony consists of four concepts:
       Nodes and and Edges can have arbitrary JSON properties.
 
   - Relation: A named, typed sub-graph that hold hyperedges.  A
-    relation consists of two GraphBLAS Incidence matrices that can be
-    multiplied to project an adjacency with themselves, or any other
-    combination of relations.
+    relation consists of two GraphBLAS [Incidence
+    Matrices](https://en.wikipedia.org/wiki/Incidence_matrix) that can
+    be multiplied to project an adjacency with themselves, or any
+    other combination of relations.
 
   - Edge: Graphony hyperedges can represent relations between multiple
     incoming and outgoing nodes.
