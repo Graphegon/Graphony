@@ -17,6 +17,17 @@ def _f_doc():
 _no_codes = (_f_no_doc.__code__.co_code, _f_doc.__code__.co_code)
 
 
+def curse(func):
+    @wraps(func)
+    def _decorator(self, *args, **kwargs):
+        with self.graph._conn.cursor() as curs:
+            r = func(self, curs, *args, **kwargs)
+            # self.chain.logger.debug(curs.statusmessage)
+            return r
+
+    return _decorator
+
+
 def query(f):
     d = dedent(f.__doc__.split("\n", 1)[1])
     doc_query = (
@@ -40,15 +51,4 @@ def query(f):
         else:
             return cursor.fetchone()[0]
 
-    return wrapper
-
-
-def curse(func):
-    @wraps(func)
-    def _decorator(self, *args, **kwargs):
-        with self._graph._conn.cursor() as curs:
-            r = func(self, curs, *args, **kwargs)
-            # self.chain.logger.debug(curs.statusmessage)
-            return r
-
-    return _decorator
+    return curse(wrapper)
