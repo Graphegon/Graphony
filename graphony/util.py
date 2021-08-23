@@ -49,6 +49,9 @@ def query(f):
         if code:
             return r
         else:
-            return cursor.fetchone()[0]
+            r = cursor.fetchone()
+            if r is not None:
+                r = r[0]
+            return r
 
     return curse(wrapper)

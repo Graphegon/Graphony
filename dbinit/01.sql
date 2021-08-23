@@ -2,7 +2,6 @@ BEGIN;
 
 CREATE SCHEMA graphony;
 
-
 CREATE TABLE graphony.node(
     n_id BIGSERIAL,
     n_name TEXT NOT NULL,
@@ -11,13 +10,6 @@ CREATE TABLE graphony.node(
     PRIMARY KEY (n_id) INCLUDE (n_name)
     );
 
-
-CREATE TABLE graphony.edge(
-    e_id BIGSERIAL PRIMARY KEY,
-    e_props JSONB
-    );
-
-
 CREATE TABLE graphony.relation(
     r_id BIGSERIAL,
     r_name TEXT NOT NULL,
@@ -25,5 +17,10 @@ CREATE TABLE graphony.relation(
     PRIMARY KEY (r_id) INCLUDE (r_name)
     );
 
+CREATE TABLE graphony.edge(
+    e_id BIGSERIAL PRIMARY KEY,
+    r_id BIGINT REFERENCES graphony.relation(r_id),
+    e_props JSONB
+    );
 
 COMMIT;
