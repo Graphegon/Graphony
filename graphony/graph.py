@@ -48,7 +48,7 @@ class Graph:
     alice and the other from alice to jane.
 
     >>> p(G)
-    [friend(bob -> alice: True), friend(alice -> jane: True)]
+    [(friend, bob, alice, True), (friend, alice, jane, True)]
 
     An iterator of relation tuples can also be provided:
 
@@ -73,43 +73,43 @@ class Graph:
     acts as a wildcard to matches all values.
 
     >>> p(G())
-    [friend(bob -> alice: True),
-     friend(alice -> jane: True),
-     coworker(bob -> jane: True),
-     coworker(alice -> jane: True),
-     distance(chicago -> seatle: 422),
-     distance(seattle -> portland: 42)]
+    [(friend, bob, alice, True),
+     (friend, alice, jane, True),
+     (coworker, bob, jane, True),
+     (coworker, alice, jane, True),
+     (distance, chicago, seatle, 422),
+     (distance, seattle, portland, 42)]
 
     Only print relations where `bob` is the src:
 
     >>> p(G(source='bob'))
-    [friend(bob -> alice: True), coworker(bob -> jane: True)]
+    [(friend, bob, alice, True), (coworker, bob, jane, True)]
 
     Only print relations where `coworker` is the relation:
 
     >>> p(G(relation='coworker'))
-    [coworker(bob -> jane: True), coworker(alice -> jane: True)]
+    [(coworker, bob, jane, True), (coworker, alice, jane, True)]
 
     Only print relations where `jane` is the dest:
 
     >>> p(G(destination='jane'))
-    [friend(alice -> jane: True),
-     coworker(bob -> jane: True),
-     coworker(alice -> jane: True)]
+    [(friend, alice, jane, True),
+     (coworker, bob, jane, True),
+     (coworker, alice, jane, True)]
 
     >>> p(G(source='bob', relation='coworker', destination='jane'))
-    [coworker(bob -> jane: True)]
+    [(coworker, bob, jane, True)]
 
     The entire graph can also be iterated directly.  This is the same
     as `G()` with no arguments:
 
     >>> p(list(G))
-    [friend(bob -> alice: True),
-     friend(alice -> jane: True),
-     coworker(bob -> jane: True),
-     coworker(alice -> jane: True),
-     distance(chicago -> seatle: 422),
-     distance(seattle -> portland: 42)]
+    [(friend, bob, alice, True),
+     (friend, alice, jane, True),
+     (coworker, bob, jane, True),
+     (coworker, alice, jane, True),
+     (distance, chicago, seatle, 422),
+     (distance, seattle, portland, 42)]
 
     Edges can be tested to see if they are contained in the Graph:
 
@@ -123,7 +123,7 @@ class Graph:
     Relations can be iterated directly:
 
     >>> p(list(G.friend))
-    [friend(bob -> alice: True), friend(alice -> jane: True)]
+    [(friend, bob, alice, True), (friend, alice, jane, True)]
 
     Each relation is a pair of incidence matrices, `A` and `B`.  `A`
     is a graph from source ids to edge ids, `B` is a graph from edge
@@ -259,6 +259,29 @@ class Graph:
 
     def __iter__(self):
         return self(weighted=True)
+
+    def __delitem__(self, key):
+        source, relation, destination = key
+        if source is not None:  # src, ?, ?
+            if relation is not None:  # src, relation, ?
+                if destination is not None:  # src, relation, dest
+                    pass
+                else:  # src, relation, None
+                    pass
+            else:  # src, None, ?
+                if destination is not None:  # src, None, dest
+                    pass
+                else:  # src, None, None
+                    pass
+        elif relation is not None:  # None, relation, ?
+            if destination is not None:  # None, relation, dest
+                pass
+            else:  # None, relation, None
+                pass
+        elif destination is not None:  # None, None, dest
+            pass
+        else:  # None, None, None
+            pass
 
     def __getattr__(self, name):
         rid = self._get_relation_id(name)
@@ -424,7 +447,7 @@ class Edge(NamedTuple):
 
     def __repr__(self):
         return (
-            f"{self.relation.name}({self.source} -> {self.destination}: {self.weight})"
+            f"({self.relation.name}, {self.source}, {self.destination}, {self.weight})"
         )
 
     @property
@@ -441,6 +464,9 @@ class Edge(NamedTuple):
 
 
 class Node:
+
+    __slots__ = ("graph", "id", "props")
+
     def __init__(self, graph, id, **props):
         if isinstance(id, str):
             id = graph._upsert_node(id)
@@ -453,7 +479,7 @@ class Node:
         return self.graph._get_node_name(self.id)
 
     def __repr__(self):
-        return self.name or ""
+        return self.name
 
 
 class Relation:

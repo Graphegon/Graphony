@@ -76,7 +76,7 @@ class Graph:
     alice and the other from alice to jane.
 
     &gt;&gt;&gt; p(G)
-    [friend(bob -&gt; alice: True), friend(alice -&gt; jane: True)]
+    [(friend, bob, alice, True), (friend, alice, jane, True)]
 
     An iterator of relation tuples can also be provided:
 
@@ -101,43 +101,43 @@ class Graph:
     acts as a wildcard to matches all values.
 
     &gt;&gt;&gt; p(G())
-    [friend(bob -&gt; alice: True),
-     friend(alice -&gt; jane: True),
-     coworker(bob -&gt; jane: True),
-     coworker(alice -&gt; jane: True),
-     distance(chicago -&gt; seatle: 422),
-     distance(seattle -&gt; portland: 42)]
+    [(friend, bob, alice, True),
+     (friend, alice, jane, True),
+     (coworker, bob, jane, True),
+     (coworker, alice, jane, True),
+     (distance, chicago, seatle, 422),
+     (distance, seattle, portland, 42)]
 
     Only print relations where `bob` is the src:
 
     &gt;&gt;&gt; p(G(source=&#39;bob&#39;))
-    [friend(bob -&gt; alice: True), coworker(bob -&gt; jane: True)]
+    [(friend, bob, alice, True), (coworker, bob, jane, True)]
 
     Only print relations where `coworker` is the relation:
 
     &gt;&gt;&gt; p(G(relation=&#39;coworker&#39;))
-    [coworker(bob -&gt; jane: True), coworker(alice -&gt; jane: True)]
+    [(coworker, bob, jane, True), (coworker, alice, jane, True)]
 
     Only print relations where `jane` is the dest:
 
     &gt;&gt;&gt; p(G(destination=&#39;jane&#39;))
-    [friend(alice -&gt; jane: True),
-     coworker(bob -&gt; jane: True),
-     coworker(alice -&gt; jane: True)]
+    [(friend, alice, jane, True),
+     (coworker, bob, jane, True),
+     (coworker, alice, jane, True)]
 
     &gt;&gt;&gt; p(G(source=&#39;bob&#39;, relation=&#39;coworker&#39;, destination=&#39;jane&#39;))
-    [coworker(bob -&gt; jane: True)]
+    [(coworker, bob, jane, True)]
 
     The entire graph can also be iterated directly.  This is the same
     as `G()` with no arguments:
 
     &gt;&gt;&gt; p(list(G))
-    [friend(bob -&gt; alice: True),
-     friend(alice -&gt; jane: True),
-     coworker(bob -&gt; jane: True),
-     coworker(alice -&gt; jane: True),
-     distance(chicago -&gt; seatle: 422),
-     distance(seattle -&gt; portland: 42)]
+    [(friend, bob, alice, True),
+     (friend, alice, jane, True),
+     (coworker, bob, jane, True),
+     (coworker, alice, jane, True),
+     (distance, chicago, seatle, 422),
+     (distance, seattle, portland, 42)]
 
     Edges can be tested to see if they are contained in the Graph:
 
@@ -151,7 +151,7 @@ class Graph:
     Relations can be iterated directly:
 
     &gt;&gt;&gt; p(list(G.friend))
-    [friend(bob -&gt; alice: True), friend(alice -&gt; jane: True)]
+    [(friend, bob, alice, True), (friend, alice, jane, True)]
 
     Each relation is a pair of incidence matrices, `A` and `B`.  `A`
     is a graph from source ids to edge ids, `B` is a graph from edge
@@ -287,6 +287,29 @@ class Graph:
 
     def __iter__(self):
         return self(weighted=True)
+
+    def __delitem__(self, key):
+        source, relation, destination = key
+        if source is not None:  # src, ?, ?
+            if relation is not None:  # src, relation, ?
+                if destination is not None:  # src, relation, dest
+                    pass
+                else:  # src, relation, None
+                    pass
+            else:  # src, None, ?
+                if destination is not None:  # src, None, dest
+                    pass
+                else:  # src, None, None
+                    pass
+        elif relation is not None:  # None, relation, ?
+            if destination is not None:  # None, relation, dest
+                pass
+            else:  # None, relation, None
+                pass
+        elif destination is not None:  # None, None, dest
+            pass
+        else:  # None, None, None
+            pass
 
     def __getattr__(self, name):
         rid = self._get_relation_id(name)
@@ -452,7 +475,7 @@ class Edge(NamedTuple):
 
     def __repr__(self):
         return (
-            f&#34;{self.relation.name}({self.source} -&gt; {self.destination}: {self.weight})&#34;
+            f&#34;({self.relation.name}, {self.source}, {self.destination}, {self.weight})&#34;
         )
 
     @property
@@ -469,6 +492,9 @@ class Edge(NamedTuple):
 
 
 class Node:
+
+    __slots__ = (&#34;graph&#34;, &#34;id&#34;, &#34;props&#34;)
+
     def __init__(self, graph, id, **props):
         if isinstance(id, str):
             id = graph._upsert_node(id)
@@ -481,7 +507,7 @@ class Node:
         return self.graph._get_node_name(self.id)
 
     def __repr__(self):
-        return self.name or &#34;&#34;
+        return self.name
 
 
 class Relation:
@@ -570,7 +596,7 @@ and provide properties for that node as well.</p>
 <p>This adds two edges to the <code>friend</code> relation, one from bob to
 alice and the other from alice to jane.</p>
 <pre><code class="language-python-repl">&gt;&gt;&gt; p(G)
-[friend(bob -&gt; alice: True), friend(alice -&gt; jane: True)]
+[(friend, bob, alice, True), (friend, alice, jane, True)]
 </code></pre>
 <p>An iterator of relation tuples can also be provided:</p>
 <pre><code class="language-python-repl">&gt;&gt;&gt; G += [('coworker', 'bob', 'jane'), ('coworker', 'alice', 'jane')]
@@ -594,40 +620,40 @@ consists of three optional arguments for <code>relation</code>, 'source' and
 The default value for all three is None, which
 acts as a wildcard to matches all values.</p>
 <pre><code class="language-python-repl">&gt;&gt;&gt; p(G())
-[friend(bob -&gt; alice: True),
- friend(alice -&gt; jane: True),
- coworker(bob -&gt; jane: True),
- coworker(alice -&gt; jane: True),
- distance(chicago -&gt; seatle: 422),
- distance(seattle -&gt; portland: 42)]
+[(friend, bob, alice, True),
+ (friend, alice, jane, True),
+ (coworker, bob, jane, True),
+ (coworker, alice, jane, True),
+ (distance, chicago, seatle, 422),
+ (distance, seattle, portland, 42)]
 </code></pre>
 <p>Only print relations where <code>bob</code> is the src:</p>
 <pre><code class="language-python-repl">&gt;&gt;&gt; p(G(source='bob'))
-[friend(bob -&gt; alice: True), coworker(bob -&gt; jane: True)]
+[(friend, bob, alice, True), (coworker, bob, jane, True)]
 </code></pre>
 <p>Only print relations where <code>coworker</code> is the relation:</p>
 <pre><code class="language-python-repl">&gt;&gt;&gt; p(G(relation='coworker'))
-[coworker(bob -&gt; jane: True), coworker(alice -&gt; jane: True)]
+[(coworker, bob, jane, True), (coworker, alice, jane, True)]
 </code></pre>
 <p>Only print relations where <code>jane</code> is the dest:</p>
 <pre><code class="language-python-repl">&gt;&gt;&gt; p(G(destination='jane'))
-[friend(alice -&gt; jane: True),
- coworker(bob -&gt; jane: True),
- coworker(alice -&gt; jane: True)]
+[(friend, alice, jane, True),
+ (coworker, bob, jane, True),
+ (coworker, alice, jane, True)]
 </code></pre>
 <pre><code class="language-python-repl">&gt;&gt;&gt; p(G(source='bob', relation='coworker', destination='jane'))
-[coworker(bob -&gt; jane: True)]
+[(coworker, bob, jane, True)]
 </code></pre>
 <p>The entire graph can also be iterated directly.
 This is the same
 as <code>G()</code> with no arguments:</p>
 <pre><code class="language-python-repl">&gt;&gt;&gt; p(list(G))
-[friend(bob -&gt; alice: True),
- friend(alice -&gt; jane: True),
- coworker(bob -&gt; jane: True),
- coworker(alice -&gt; jane: True),
- distance(chicago -&gt; seatle: 422),
- distance(seattle -&gt; portland: 42)]
+[(friend, bob, alice, True),
+ (friend, alice, jane, True),
+ (coworker, bob, jane, True),
+ (coworker, alice, jane, True),
+ (distance, chicago, seatle, 422),
+ (distance, seattle, portland, 42)]
 </code></pre>
 <p>Edges can be tested to see if they are contained in the Graph:</p>
 <p>Relations are accessible as attributes of the graph:</p>
@@ -638,7 +664,7 @@ as <code>G()</code> with no arguments:</p>
 </code></pre>
 <p>Relations can be iterated directly:</p>
 <pre><code class="language-python-repl">&gt;&gt;&gt; p(list(G.friend))
-[friend(bob -&gt; alice: True), friend(alice -&gt; jane: True)]
+[(friend, bob, alice, True), (friend, alice, jane, True)]
 </code></pre>
 <p>Each relation is a pair of incidence matrices, <code>A</code> and <code>B</code>.
 <code>A</code>
@@ -695,7 +721,7 @@ by calling the relation with a semring using the syntax
     alice and the other from alice to jane.
 
     &gt;&gt;&gt; p(G)
-    [friend(bob -&gt; alice: True), friend(alice -&gt; jane: True)]
+    [(friend, bob, alice, True), (friend, alice, jane, True)]
 
     An iterator of relation tuples can also be provided:
 
@@ -720,43 +746,43 @@ by calling the relation with a semring using the syntax
     acts as a wildcard to matches all values.
 
     &gt;&gt;&gt; p(G())
-    [friend(bob -&gt; alice: True),
-     friend(alice -&gt; jane: True),
-     coworker(bob -&gt; jane: True),
-     coworker(alice -&gt; jane: True),
-     distance(chicago -&gt; seatle: 422),
-     distance(seattle -&gt; portland: 42)]
+    [(friend, bob, alice, True),
+     (friend, alice, jane, True),
+     (coworker, bob, jane, True),
+     (coworker, alice, jane, True),
+     (distance, chicago, seatle, 422),
+     (distance, seattle, portland, 42)]
 
     Only print relations where `bob` is the src:
 
     &gt;&gt;&gt; p(G(source=&#39;bob&#39;))
-    [friend(bob -&gt; alice: True), coworker(bob -&gt; jane: True)]
+    [(friend, bob, alice, True), (coworker, bob, jane, True)]
 
     Only print relations where `coworker` is the relation:
 
     &gt;&gt;&gt; p(G(relation=&#39;coworker&#39;))
-    [coworker(bob -&gt; jane: True), coworker(alice -&gt; jane: True)]
+    [(coworker, bob, jane, True), (coworker, alice, jane, True)]
 
     Only print relations where `jane` is the dest:
 
     &gt;&gt;&gt; p(G(destination=&#39;jane&#39;))
-    [friend(alice -&gt; jane: True),
-     coworker(bob -&gt; jane: True),
-     coworker(alice -&gt; jane: True)]
+    [(friend, alice, jane, True),
+     (coworker, bob, jane, True),
+     (coworker, alice, jane, True)]
 
     &gt;&gt;&gt; p(G(source=&#39;bob&#39;, relation=&#39;coworker&#39;, destination=&#39;jane&#39;))
-    [coworker(bob -&gt; jane: True)]
+    [(coworker, bob, jane, True)]
 
     The entire graph can also be iterated directly.  This is the same
     as `G()` with no arguments:
 
     &gt;&gt;&gt; p(list(G))
-    [friend(bob -&gt; alice: True),
-     friend(alice -&gt; jane: True),
-     coworker(bob -&gt; jane: True),
-     coworker(alice -&gt; jane: True),
-     distance(chicago -&gt; seatle: 422),
-     distance(seattle -&gt; portland: 42)]
+    [(friend, bob, alice, True),
+     (friend, alice, jane, True),
+     (coworker, bob, jane, True),
+     (coworker, alice, jane, True),
+     (distance, chicago, seatle, 422),
+     (distance, seattle, portland, 42)]
 
     Edges can be tested to see if they are contained in the Graph:
 
@@ -770,7 +796,7 @@ by calling the relation with a semring using the syntax
     Relations can be iterated directly:
 
     &gt;&gt;&gt; p(list(G.friend))
-    [friend(bob -&gt; alice: True), friend(alice -&gt; jane: True)]
+    [(friend, bob, alice, True), (friend, alice, jane, True)]
 
     Each relation is a pair of incidence matrices, `A` and `B`.  `A`
     is a graph from source ids to edge ids, `B` is a graph from edge
@@ -906,6 +932,29 @@ by calling the relation with a semring using the syntax
 
     def __iter__(self):
         return self(weighted=True)
+
+    def __delitem__(self, key):
+        source, relation, destination = key
+        if source is not None:  # src, ?, ?
+            if relation is not None:  # src, relation, ?
+                if destination is not None:  # src, relation, dest
+                    pass
+                else:  # src, relation, None
+                    pass
+            else:  # src, None, ?
+                if destination is not None:  # src, None, dest
+                    pass
+                else:  # src, None, None
+                    pass
+        elif relation is not None:  # None, relation, ?
+            if destination is not None:  # None, relation, dest
+                pass
+            else:  # None, relation, None
+                pass
+        elif destination is not None:  # None, None, dest
+            pass
+        else:  # None, None, None
+            pass
 
     def __getattr__(self, name):
         rid = self._get_relation_id(name)
@@ -1081,7 +1130,7 @@ by calling the relation with a semring using the syntax
 
     def __repr__(self):
         return (
-            f&#34;{self.relation.name}({self.source} -&gt; {self.destination}: {self.weight})&#34;
+            f&#34;({self.relation.name}, {self.source}, {self.destination}, {self.weight})&#34;
         )
 
     @property
@@ -1171,6 +1220,9 @@ def destination(self):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class Node:
+
+    __slots__ = (&#34;graph&#34;, &#34;id&#34;, &#34;props&#34;)
+
     def __init__(self, graph, id, **props):
         if isinstance(id, str):
             id = graph._upsert_node(id)
@@ -1183,7 +1235,7 @@ def destination(self):
         return self.graph._get_node_name(self.id)
 
     def __repr__(self):
-        return self.name or &#34;&#34;</code></pre>
+        return self.name</code></pre>
 </details>
 <h3 class="caret">Instance Attributes</h3>
 <dl class="nested active">
@@ -1198,6 +1250,18 @@ def destination(self):
 def name(self):
     return self.graph._get_node_name(self.id)</code></pre>
 </details>
+</dd>
+<dt id="graphony.graph.Node.graph"><code class="name">var <span class="ident">graph</span></code></dt>
+<dd>
+<div class="desc"><p>Return an attribute of instance, which is of type owner.</p></div>
+</dd>
+<dt id="graphony.graph.Node.id"><code class="name">var <span class="ident">id</span></code></dt>
+<dd>
+<div class="desc"><p>Return an attribute of instance, which is of type owner.</p></div>
+</dd>
+<dt id="graphony.graph.Node.props"><code class="name">var <span class="ident">props</span></code></dt>
+<dd>
+<div class="desc"><p>Return an attribute of instance, which is of type owner.</p></div>
 </dd>
 </dl>
 </dd>
@@ -1329,7 +1393,10 @@ def name(self):
 <li>
 <code class="caret"><a title="graphony.graph.Node" href="#graphony.graph.Node">Node</a></code>
 <ul class=" nested ">
+<li><code><a title="graphony.graph.Node.graph" href="#graphony.graph.Node.graph">graph</a></code></li>
+<li><code><a title="graphony.graph.Node.id" href="#graphony.graph.Node.id">id</a></code></li>
 <li><code><a title="graphony.graph.Node.name" href="#graphony.graph.Node.name">name</a></code></li>
+<li><code><a title="graphony.graph.Node.props" href="#graphony.graph.Node.props">props</a></code></li>
 </ul>
 </li>
 <li>
