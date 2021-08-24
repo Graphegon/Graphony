@@ -10,13 +10,20 @@ from pygraphblas.base import NoValue
 
 
 class Graph:
-    """A GraphBLAS-backed Hyper/Property graph.
+    """# A GraphBLAS-backed Hyper/Property graph.
 
     A graph is set of nodes connected by edges.  Edges can be simple
     1-1 connections, or many-to-many *hyperedges*.  Edges are named
     and typed into distinct collections called *relations*.  Each
     relation holds edges and their weights, which can be any of the
     standard GraphBLAS types, or a User Defined Type.
+
+    Interally The GraphBLAS works numerically, nodes are idenified by
+    a 60-bit integer key, so one of Graphony's key tasks is keeping
+    track of node ids and the names they map to.  These mappings are
+    stored in PostgreSQL.
+
+    ## Creating Graphs
 
     To demonstrate, first let's create a helper function `p()` that
     will iterate results into a list and "pretty print" them.  This
@@ -34,6 +41,8 @@ class Graph:
     method.  In their simplest form, a relation is a Python tuple with
     3 elements, a relation name, a source name, and a destination
     name:
+
+    ## Accumulating Edges
 
     >>> G += ('friend', 'bob', 'alice')
 
@@ -61,6 +70,8 @@ class Graph:
 
     >>> G += [('distance', 'chicago', 'seatle', 422),
     ...       ('distance', 'seattle', 'portland', 42)]
+
+    ## Graph Querying
 
     Inspecting G shows that it has three columns and six edges:
 
@@ -103,7 +114,7 @@ class Graph:
     The entire graph can also be iterated directly.  This is the same
     as `G()` with no arguments:
 
-    >>> p(list(G))
+    >>> p(G)
     [(friend, bob, alice, True),
      (friend, alice, jane, True),
      (coworker, bob, jane, True),
@@ -132,6 +143,8 @@ class Graph:
     forming a multigraph, and multiple sources and destinations can be
     joined by the same edge, forming a hypergraph.
 
+    ## Graph Algorithms
+
     When it's necessary to run graph algorithms, a relation can be
     *projected* into an adjacency matrix using any GraphBLAS semiring
     by calling the relation with a semring using the syntax
@@ -139,25 +152,35 @@ class Graph:
 
     XXX
 
-    Nodes in a graph can be deleted using the `del` keyword:
+    ## Deleting Edges
+
+    Edges in a graph can be deleted using the `del` keyword:
 
     >>> del G[None, None, None]
     >>> p(G)
     []
 
+    ## Query Graphs from SQL
+
     Any tuple producing iterator can be used to construct Graphs.
-    Graphony offers a shorthand helper for this.
+    Graphony offers a shorthand helper for this.  Any query that
+    produces 3 or 4 columns can be used to produce edges into the
+    graph.
 
     >>> G += G.sql(
-    ...    "select 'karate', 'karate_' || s_id, 'karate_' || d_id "
-    ...    "from graphony.karate")
+    ...  "select 'karate', 'karate_' || s_id, 'karate_' || d_id "
+    ...  "from graphony.karate")
+
     >>> len(G)
     78
 
-    All the new edges are in the karate relation:
+    All the edges are in the karate relation, as defined in the sql
+    query above:
 
     >>> len(G.karate)
     78
+
+    ## Fetching Graphs from SuiteSparse Matrix Collection
 
     """
 
