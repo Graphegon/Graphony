@@ -137,6 +137,28 @@ class Graph:
     by calling the relation with a semring using the syntax
     `rel(semiring)`.
 
+    XXX
+
+    Nodes in a graph can be deleted using the `del` keyword:
+
+    >>> del G[None, None, None]
+    >>> p(G)
+    []
+
+    Any tuple producing iterator can be used to construct Graphs.
+    Graphony offers a shorthand helper for this.
+
+    >>> G += G.sql(
+    ...    "select 'karate', 'karate_' || s_id, 'karate_' || d_id "
+    ...    "from graphony.karate")
+    >>> len(G)
+    78
+
+    All the new edges are in the karate relation:
+
+    >>> len(G.karate)
+    78
+
     """
 
     _LRU_MAXSIZE = None
@@ -252,7 +274,7 @@ class Graph:
 
     def __len__(self):
         """Returns the number of triples in the graph."""
-        return sum(map(attrgetter("B.nvals"), self._relations.values()))
+        return sum(map(len, self._relations.values()))
 
     def __repr__(self):
         return f"<Graph [{', '.join([r.name for r in self._relations.values()])}]: {len(self)}>"
@@ -263,11 +285,21 @@ class Graph:
     def __delitem__(self, key):
         source, relation, destination = key
         if source is not None:  # src, ?, ?
+            sid = self[source]
             if relation is not None:  # src, relation, ?
+                rel = self._relations[relation]
                 if destination is not None:  # src, relation, dest
-                    pass
+                    did = self[destination]
+                    for _, eid in rel.A[sid]:
+                        del rel.A[sid, eid]
+                        del rel.B[eid, did]
+                        return
+
                 else:  # src, relation, None
-                    pass
+                    for _, eid in rel.A[sid]:
+                        rel.B[eid] = Vector.sparse(BOOL, rel.B.nrows)
+                    rel.A[sid] = Vector.sparse(BOOL, rel.A.nrows)
+
             else:  # src, None, ?
                 if destination is not None:  # src, None, dest
                     pass
@@ -281,13 +313,20 @@ class Graph:
         elif destination is not None:  # None, None, dest
             pass
         else:  # None, None, None
-            pass
+            for _, rel in self._relations.items():
+                rel.A.clear()
+                rel.B.clear()
 
     def __getattr__(self, name):
         rid = self._get_relation_id(name)
         if rid is None:
             raise AttributeError(name)
         return self._relations[rid]
+
+    def sql(self, query):
+        with self._conn.cursor() as c:
+            c.execute(query)
+            return c.fetchall()
 
     def __call__(self, relation=None, source=None, destination=None, weighted=True):
         """Query the graph for matching triples.
@@ -500,7 +539,9 @@ class Relation:
         self.A[sid, eid] = True
         self.B[eid, did] = weight
 
-    def __call__(self, semiring, *args, **kwargs):
+    def __call__(self, semiring=None, *args, **kwargs):
+        if semiring is None:
+            semiring = INT64.any_secondi
         return semiring(self.A, self.B, *args, **kwargs)
 
     def __iter__(self):
@@ -508,6 +549,9 @@ class Relation:
             w = self.B[eid]
             for _, weight in w:
                 yield Edge(self.graph, self.rid, sid, did, weight, eid)
+
+    def __len__(self):
+        return self.B.nvals
 
     def __repr__(self):
         return f"<{self.B.type.__name__} {self.name}: {self.B.nvals}>"
