@@ -41,8 +41,8 @@ class Graph:
     graph nodes automatically.  You can also create a node explicity
     and provide properties for that node as well.
 
-    >>> alice = Node(G, 'alice', favorite_color='blue')
-    >>> G += ('friend', alice, 'jane')
+    >>> jane = Node(G, 'jane', favorite_color='blue')
+    >>> G += ('friend', 'alice', jane)
 
     This adds two edges to the `friend` relation, one from bob to
     alice and the other from alice to jane.
