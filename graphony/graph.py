@@ -11,7 +11,7 @@ from pygraphblas.base import NoValue
 
 
 class Graph:
-    """# A GraphBLAS-backed Hyper/Property graph.
+    """# Hypersparse Multi-property Hypergraphs
 
     A graph is set of nodes connected by edges.  Edges can be simple
     1-1 connections, or many-to-many *hyperedges*.  Edges are named
@@ -360,7 +360,7 @@ class Graph:
 
         Source, relation, and/or destination values can be provided, and
         triples that match the given values will be returned.  Passing
-        no values will iterate all triples.
+        no values will iterate all edges.
 
         """
         weight = True
@@ -531,18 +531,18 @@ class Edge(NamedTuple):
 
 class Node:
 
-    __slots__ = ("relation", "id", "props")
+    __slots__ = ("graph", "id", "props")
 
-    def __init__(self, relation, id, **props):
+    def __init__(self, graph, id, **props):
         if isinstance(id, str):
-            id = relation.graph._upsert_node(id)
-        self.relation = relation
+            id = graph._upsert_node(id)
+        self.graph = graph
         self.id = id
         self.props = props
 
     @property
     def name(self):
-        return self.relation.graph._get_node_name(self.id)
+        return self.graph._get_node_name(self.id)
 
     def __repr__(self):
         return self.name

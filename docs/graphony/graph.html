@@ -39,7 +39,7 @@ from pygraphblas.base import NoValue
 
 
 class Graph:
-    &#34;&#34;&#34;# A GraphBLAS-backed Hyper/Property graph.
+    &#34;&#34;&#34;# Hypersparse Multi-property Hypergraphs
 
     A graph is set of nodes connected by edges.  Edges can be simple
     1-1 connections, or many-to-many *hyperedges*.  Edges are named
@@ -208,8 +208,6 @@ class Graph:
 
     &gt;&gt;&gt; len(G.karate)
     78
-
-    &gt;&gt;&gt; breakpoint()
 
     &#34;&#34;&#34;
 
@@ -390,7 +388,7 @@ class Graph:
 
         Source, relation, and/or destination values can be provided, and
         triples that match the given values will be returned.  Passing
-        no values will iterate all triples.
+        no values will iterate all edges.
 
         &#34;&#34;&#34;
         weight = True
@@ -561,18 +559,18 @@ class Edge(NamedTuple):
 
 class Node:
 
-    __slots__ = (&#34;relation&#34;, &#34;id&#34;, &#34;props&#34;)
+    __slots__ = (&#34;graph&#34;, &#34;id&#34;, &#34;props&#34;)
 
-    def __init__(self, relation, id, **props):
+    def __init__(self, graph, id, **props):
         if isinstance(id, str):
-            id = relation.graph._upsert_node(id)
-        self.relation = relation
+            id = graph._upsert_node(id)
+        self.graph = graph
         self.id = id
         self.props = props
 
     @property
     def name(self):
-        return self.relation.graph._get_node_name(self.id)
+        return self.graph._get_node_name(self.id)
 
     def __repr__(self):
         return self.name
@@ -632,7 +630,7 @@ def read_csv(self, fname, **kw):
 <span>(</span><span>dsn, relations=None, max_cache_size=None)</span>
 </code></dt>
 <dd>
-<div class="desc"><h1 id="a-graphblas-backed-hyperproperty-graph">A GraphBLAS-backed Hyper/Property graph.</h1>
+<div class="desc"><h1 id="hypersparse-multi-property-hypergraphs">Hypersparse Multi-property Hypergraphs</h1>
 <p>A graph is set of nodes connected by edges.
 Edges can be simple
 1-1 connections, or many-to-many <em>hyperedges</em>.
@@ -784,15 +782,13 @@ graph.</p>
 query above:</p>
 <pre><code class="language-python-repl">&gt;&gt;&gt; len(G.karate)
 78
-</code></pre>
-<pre><code class="language-python-repl">&gt;&gt;&gt; breakpoint()
 </code></pre></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class Graph:
-    &#34;&#34;&#34;# A GraphBLAS-backed Hyper/Property graph.
+    &#34;&#34;&#34;# Hypersparse Multi-property Hypergraphs
 
     A graph is set of nodes connected by edges.  Edges can be simple
     1-1 connections, or many-to-many *hyperedges*.  Edges are named
@@ -961,8 +957,6 @@ query above:</p>
 
     &gt;&gt;&gt; len(G.karate)
     78
-
-    &gt;&gt;&gt; breakpoint()
 
     &#34;&#34;&#34;
 
@@ -1143,7 +1137,7 @@ query above:</p>
 
         Source, relation, and/or destination values can be provided, and
         triples that match the given values will be returned.  Passing
-        no values will iterate all triples.
+        no values will iterate all edges.
 
         &#34;&#34;&#34;
         weight = True
@@ -1405,7 +1399,7 @@ def destination(self):
 </dd>
 <dt id="graphony.graph.Node"><code class="flex name class">
 <span>class <span class="ident">Node</span></span>
-<span>(</span><span>relation, id, **props)</span>
+<span>(</span><span>graph, id, **props)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -1415,18 +1409,18 @@ def destination(self):
 </summary>
 <pre><code class="python">class Node:
 
-    __slots__ = (&#34;relation&#34;, &#34;id&#34;, &#34;props&#34;)
+    __slots__ = (&#34;graph&#34;, &#34;id&#34;, &#34;props&#34;)
 
-    def __init__(self, relation, id, **props):
+    def __init__(self, graph, id, **props):
         if isinstance(id, str):
-            id = relation.graph._upsert_node(id)
-        self.relation = relation
+            id = graph._upsert_node(id)
+        self.graph = graph
         self.id = id
         self.props = props
 
     @property
     def name(self):
-        return self.relation.graph._get_node_name(self.id)
+        return self.graph._get_node_name(self.id)
 
     def __repr__(self):
         return self.name</code></pre>
@@ -1442,18 +1436,18 @@ def destination(self):
 </summary>
 <pre><code class="python">@property
 def name(self):
-    return self.relation.graph._get_node_name(self.id)</code></pre>
+    return self.graph._get_node_name(self.id)</code></pre>
 </details>
+</dd>
+<dt id="graphony.graph.Node.graph"><code class="name">var <span class="ident">graph</span></code></dt>
+<dd>
+<div class="desc"><p>Return an attribute of instance, which is of type owner.</p></div>
 </dd>
 <dt id="graphony.graph.Node.id"><code class="name">var <span class="ident">id</span></code></dt>
 <dd>
 <div class="desc"><p>Return an attribute of instance, which is of type owner.</p></div>
 </dd>
 <dt id="graphony.graph.Node.props"><code class="name">var <span class="ident">props</span></code></dt>
-<dd>
-<div class="desc"><p>Return an attribute of instance, which is of type owner.</p></div>
-</dd>
-<dt id="graphony.graph.Node.relation"><code class="name">var <span class="ident">relation</span></code></dt>
 <dd>
 <div class="desc"><p>Return an attribute of instance, which is of type owner.</p></div>
 </dd>
@@ -1595,10 +1589,10 @@ def name(self):
 <li>
 <code class="caret"><a title="graphony.graph.Node" href="#graphony.graph.Node">Node</a></code>
 <ul class=" nested ">
+<li><code><a title="graphony.graph.Node.graph" href="#graphony.graph.Node.graph">graph</a></code></li>
 <li><code><a title="graphony.graph.Node.id" href="#graphony.graph.Node.id">id</a></code></li>
 <li><code><a title="graphony.graph.Node.name" href="#graphony.graph.Node.name">name</a></code></li>
 <li><code><a title="graphony.graph.Node.props" href="#graphony.graph.Node.props">props</a></code></li>
-<li><code><a title="graphony.graph.Node.relation" href="#graphony.graph.Node.relation">relation</a></code></li>
 </ul>
 </li>
 <li>
