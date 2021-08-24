@@ -2,6 +2,7 @@ from typing import NamedTuple
 from operator import attrgetter
 from functools import lru_cache
 import psycopg2 as pg
+from pickle import dumps, loads
 
 from .util import lazy, query
 
@@ -180,17 +181,20 @@ class Graph:
     >>> len(G.karate)
     78
 
-    ## Fetching Graphs from SuiteSparse Matrix Collection
-
     """
 
     _LRU_MAXSIZE = None
 
-    def __init__(self, dsn, max_cache_size=None):
+    def __init__(self, dsn, relations=None, max_cache_size=None):
         self.graph = self
-        self._dsn = dsn
-        self._conn = pg.connect(self._dsn)
-        self._relations = {}
+        self._conn = pg.connect(dsn)
+        if relations is None:
+            relations = {}
+            with self._conn.cursor() as c:
+                c.execute("select r_id, r_name, r_type from graphony.relation")
+                for r in c.fetchall():
+                    relations[r[0]] = Relation(self, r[0], r[1], loads(r[2]))
+        self._relations = relations
 
     @lru_cache(maxsize=_LRU_MAXSIZE)
     @query
@@ -220,8 +224,8 @@ class Graph:
     @query
     def _upsert_relation(self, curs):
         """
-        INSERT INTO graphony.relation (r_name)
-        VALUES (%s)
+        INSERT INTO graphony.relation (r_name, r_type)
+        VALUES (%s, %s)
         ON CONFLICT (r_name) DO UPDATE SET r_name = EXCLUDED.r_name
         RETURNING r_id
         """
@@ -267,7 +271,7 @@ class Graph:
         if eid is None:
             eid = self._new_edge()
 
-        rid = self._upsert_relation(relation)
+        rid = self._upsert_relation(relation, dumps(type(weight)))
         if rid not in self._relations:
             rel = Relation(self, rid, relation, type(weight))
             self._relations[rid] = rel
@@ -527,18 +531,18 @@ class Edge(NamedTuple):
 
 class Node:
 
-    __slots__ = ("graph", "id", "props")
+    __slots__ = ("relation", "id", "props")
 
-    def __init__(self, graph, id, **props):
+    def __init__(self, relation, id, **props):
         if isinstance(id, str):
-            id = graph._upsert_node(id)
-        self.graph = graph
+            id = relation.graph._upsert_node(id)
+        self.relation = relation
         self.id = id
         self.props = props
 
     @property
     def name(self):
-        return self.graph._get_node_name(self.id)
+        return self.relation.graph._get_node_name(self.id)
 
     def __repr__(self):
         return self.name

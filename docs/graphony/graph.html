@@ -30,6 +30,7 @@
 from operator import attrgetter
 from functools import lru_cache
 import psycopg2 as pg
+from pickle import dumps, loads
 
 from .util import lazy, query
 
@@ -38,13 +39,20 @@ from pygraphblas.base import NoValue
 
 
 class Graph:
-    &#34;&#34;&#34;A GraphBLAS-backed Hyper/Property graph.
+    &#34;&#34;&#34;# A GraphBLAS-backed Hyper/Property graph.
 
     A graph is set of nodes connected by edges.  Edges can be simple
     1-1 connections, or many-to-many *hyperedges*.  Edges are named
     and typed into distinct collections called *relations*.  Each
     relation holds edges and their weights, which can be any of the
     standard GraphBLAS types, or a User Defined Type.
+
+    Interally The GraphBLAS works numerically, nodes are idenified by
+    a 60-bit integer key, so one of Graphony&#39;s key tasks is keeping
+    track of node ids and the names they map to.  These mappings are
+    stored in PostgreSQL.
+
+    ## Creating Graphs
 
     To demonstrate, first let&#39;s create a helper function `p()` that
     will iterate results into a list and &#34;pretty print&#34; them.  This
@@ -63,14 +71,16 @@ class Graph:
     3 elements, a relation name, a source name, and a destination
     name:
 
+    ## Accumulating Edges
+
     &gt;&gt;&gt; G += (&#39;friend&#39;, &#39;bob&#39;, &#39;alice&#39;)
 
     Strings like `&#39;bob&#39;` and `&#39;alice&#39;` as edge endpoints create new
     graph nodes automatically.  You can also create a node explicity
     and provide properties for that node as well.
 
-    &gt;&gt;&gt; alice = Node(G, &#39;alice&#39;, favorite_color=&#39;blue&#39;)
-    &gt;&gt;&gt; G += (&#39;friend&#39;, alice, &#39;jane&#39;)
+    &gt;&gt;&gt; jane = Node(G, &#39;jane&#39;, favorite_color=&#39;blue&#39;)
+    &gt;&gt;&gt; G += (&#39;friend&#39;, &#39;alice&#39;, jane)
 
     This adds two edges to the `friend` relation, one from bob to
     alice and the other from alice to jane.
@@ -89,6 +99,8 @@ class Graph:
 
     &gt;&gt;&gt; G += [(&#39;distance&#39;, &#39;chicago&#39;, &#39;seatle&#39;, 422),
     ...       (&#39;distance&#39;, &#39;seattle&#39;, &#39;portland&#39;, 42)]
+
+    ## Graph Querying
 
     Inspecting G shows that it has three columns and six edges:
 
@@ -131,7 +143,7 @@ class Graph:
     The entire graph can also be iterated directly.  This is the same
     as `G()` with no arguments:
 
-    &gt;&gt;&gt; p(list(G))
+    &gt;&gt;&gt; p(G)
     [(friend, bob, alice, True),
      (friend, alice, jane, True),
      (coworker, bob, jane, True),
@@ -160,6 +172,8 @@ class Graph:
     forming a multigraph, and multiple sources and destinations can be
     joined by the same edge, forming a hypergraph.
 
+    ## Graph Algorithms
+
     When it&#39;s necessary to run graph algorithms, a relation can be
     *projected* into an adjacency matrix using any GraphBLAS semiring
     by calling the relation with a semring using the syntax
@@ -167,35 +181,50 @@ class Graph:
 
     XXX
 
-    Nodes in a graph can be deleted using the `del` keyword:
+    ## Deleting Edges
+
+    Edges in a graph can be deleted using the `del` keyword:
 
     &gt;&gt;&gt; del G[None, None, None]
     &gt;&gt;&gt; p(G)
     []
 
+    ## Query Graphs from SQL
+
     Any tuple producing iterator can be used to construct Graphs.
-    Graphony offers a shorthand helper for this.
+    Graphony offers a shorthand helper for this.  Any query that
+    produces 3 or 4 columns can be used to produce edges into the
+    graph.
 
     &gt;&gt;&gt; G += G.sql(
-    ...    &#34;select &#39;karate&#39;, &#39;karate_&#39; || s_id, &#39;karate_&#39; || d_id &#34;
-    ...    &#34;from graphony.karate&#34;)
+    ...  &#34;select &#39;karate&#39;, &#39;karate_&#39; || s_id, &#39;karate_&#39; || d_id &#34;
+    ...  &#34;from graphony.karate&#34;)
+
     &gt;&gt;&gt; len(G)
     78
 
-    All the new edges are in the karate relation:
+    All the edges are in the karate relation, as defined in the sql
+    query above:
 
     &gt;&gt;&gt; len(G.karate)
     78
+
+    &gt;&gt;&gt; breakpoint()
 
     &#34;&#34;&#34;
 
     _LRU_MAXSIZE = None
 
-    def __init__(self, dsn, max_cache_size=None):
+    def __init__(self, dsn, relations=None, max_cache_size=None):
         self.graph = self
-        self._dsn = dsn
-        self._conn = pg.connect(self._dsn)
-        self._relations = {}
+        self._conn = pg.connect(dsn)
+        if relations is None:
+            relations = {}
+            with self._conn.cursor() as c:
+                c.execute(&#34;select r_id, r_name, r_type from graphony.relation&#34;)
+                for r in c.fetchall():
+                    relations[r[0]] = Relation(self, r[0], r[1], loads(r[2]))
+        self._relations = relations
 
     @lru_cache(maxsize=_LRU_MAXSIZE)
     @query
@@ -225,8 +254,8 @@ class Graph:
     @query
     def _upsert_relation(self, curs):
         &#34;&#34;&#34;
-        INSERT INTO graphony.relation (r_name)
-        VALUES (%s)
+        INSERT INTO graphony.relation (r_name, r_type)
+        VALUES (%s, %s)
         ON CONFLICT (r_name) DO UPDATE SET r_name = EXCLUDED.r_name
         RETURNING r_id
         &#34;&#34;&#34;
@@ -272,7 +301,7 @@ class Graph:
         if eid is None:
             eid = self._new_edge()
 
-        rid = self._upsert_relation(relation)
+        rid = self._upsert_relation(relation, dumps(type(weight)))
         if rid not in self._relations:
             rel = Relation(self, rid, relation, type(weight))
             self._relations[rid] = rel
@@ -532,18 +561,18 @@ class Edge(NamedTuple):
 
 class Node:
 
-    __slots__ = (&#34;graph&#34;, &#34;id&#34;, &#34;props&#34;)
+    __slots__ = (&#34;relation&#34;, &#34;id&#34;, &#34;props&#34;)
 
-    def __init__(self, graph, id, **props):
+    def __init__(self, relation, id, **props):
         if isinstance(id, str):
-            id = graph._upsert_node(id)
-        self.graph = graph
+            id = relation.graph._upsert_node(id)
+        self.relation = relation
         self.id = id
         self.props = props
 
     @property
     def name(self):
-        return self.graph._get_node_name(self.id)
+        return self.relation.graph._get_node_name(self.id)
 
     def __repr__(self):
         return self.name
@@ -600,10 +629,10 @@ def read_csv(self, fname, **kw):
 <dl class="nested active">
 <dt id="graphony.graph.Graph"><code class="flex name class">
 <span>class <span class="ident">Graph</span></span>
-<span>(</span><span>dsn, max_cache_size=None)</span>
+<span>(</span><span>dsn, relations=None, max_cache_size=None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>A GraphBLAS-backed Hyper/Property graph.</p>
+<div class="desc"><h1 id="a-graphblas-backed-hyperproperty-graph">A GraphBLAS-backed Hyper/Property graph.</h1>
 <p>A graph is set of nodes connected by edges.
 Edges can be simple
 1-1 connections, or many-to-many <em>hyperedges</em>.
@@ -612,6 +641,12 @@ and typed into distinct collections called <em>relations</em>.
 Each
 relation holds edges and their weights, which can be any of the
 standard GraphBLAS types, or a User Defined Type.</p>
+<p>Interally The GraphBLAS works numerically, nodes are idenified by
+a 60-bit integer key, so one of Graphony's key tasks is keeping
+track of node ids and the names they map to.
+These mappings are
+stored in PostgreSQL.</p>
+<h2 id="creating-graphs">Creating Graphs</h2>
 <p>To demonstrate, first let's create a helper function <code>p()</code> that
 will iterate results into a list and "pretty print" them.
 This
@@ -628,14 +663,15 @@ method.
 In their simplest form, a relation is a Python tuple with
 3 elements, a relation name, a source name, and a destination
 name:</p>
+<h2 id="accumulating-edges">Accumulating Edges</h2>
 <pre><code class="language-python-repl">&gt;&gt;&gt; G += ('friend', 'bob', 'alice')
 </code></pre>
 <p>Strings like <code>'bob'</code> and <code>'alice'</code> as edge endpoints create new
 graph nodes automatically.
 You can also create a node explicity
 and provide properties for that node as well.</p>
-<pre><code class="language-python-repl">&gt;&gt;&gt; alice = Node(G, 'alice', favorite_color='blue')
-&gt;&gt;&gt; G += ('friend', alice, 'jane')
+<pre><code class="language-python-repl">&gt;&gt;&gt; jane = Node(G, 'jane', favorite_color='blue')
+&gt;&gt;&gt; G += ('friend', 'alice', jane)
 </code></pre>
 <p>This adds two edges to the <code>friend</code> relation, one from bob to
 alice and the other from alice to jane.</p>
@@ -653,6 +689,7 @@ provided:</p>
 <pre><code class="language-python-repl">&gt;&gt;&gt; G += [('distance', 'chicago', 'seatle', 422),
 ...       ('distance', 'seattle', 'portland', 42)]
 </code></pre>
+<h2 id="graph-querying">Graph Querying</h2>
 <p>Inspecting G shows that it has three columns and six edges:</p>
 <pre><code class="language-python-repl">&gt;&gt;&gt; G
 &lt;Graph [friend, coworker, distance]: 6&gt;
@@ -691,7 +728,7 @@ acts as a wildcard to matches all values.</p>
 <p>The entire graph can also be iterated directly.
 This is the same
 as <code>G()</code> with no arguments:</p>
-<pre><code class="language-python-repl">&gt;&gt;&gt; p(list(G))
+<pre><code class="language-python-repl">&gt;&gt;&gt; p(G)
 [(friend, bob, alice, True),
  (friend, alice, jane, True),
  (coworker, bob, jane, True),
@@ -718,40 +755,57 @@ Due to this incidence pair, a relation
 can store multiple edges between the same source and destination,
 forming a multigraph, and multiple sources and destinations can be
 joined by the same edge, forming a hypergraph.</p>
+<h2 id="graph-algorithms">Graph Algorithms</h2>
 <p>When it's necessary to run graph algorithms, a relation can be
 <em>projected</em> into an adjacency matrix using any GraphBLAS semiring
 by calling the relation with a semring using the syntax
 <code>rel(semiring)</code>.</p>
 <p>XXX</p>
-<p>Nodes in a graph can be deleted using the <code>del</code> keyword:</p>
+<h2 id="deleting-edges">Deleting Edges</h2>
+<p>Edges in a graph can be deleted using the <code>del</code> keyword:</p>
 <pre><code class="language-python-repl">&gt;&gt;&gt; del G[None, None, None]
 &gt;&gt;&gt; p(G)
 []
 </code></pre>
+<h2 id="query-graphs-from-sql">Query Graphs from SQL</h2>
 <p>Any tuple producing iterator can be used to construct Graphs.
-Graphony offers a shorthand helper for this.</p>
+Graphony offers a shorthand helper for this.
+Any query that
+produces 3 or 4 columns can be used to produce edges into the
+graph.</p>
 <pre><code class="language-python-repl">&gt;&gt;&gt; G += G.sql(
-...    &quot;select 'karate', 'karate_' || s_id, 'karate_' || d_id &quot;
-...    &quot;from graphony.karate&quot;)
-&gt;&gt;&gt; len(G)
+...  &quot;select 'karate', 'karate_' || s_id, 'karate_' || d_id &quot;
+...  &quot;from graphony.karate&quot;)
+</code></pre>
+<pre><code class="language-python-repl">&gt;&gt;&gt; len(G)
 78
 </code></pre>
-<p>All the new edges are in the karate relation:</p>
+<p>All the edges are in the karate relation, as defined in the sql
+query above:</p>
 <pre><code class="language-python-repl">&gt;&gt;&gt; len(G.karate)
 78
+</code></pre>
+<pre><code class="language-python-repl">&gt;&gt;&gt; breakpoint()
 </code></pre></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class Graph:
-    &#34;&#34;&#34;A GraphBLAS-backed Hyper/Property graph.
+    &#34;&#34;&#34;# A GraphBLAS-backed Hyper/Property graph.
 
     A graph is set of nodes connected by edges.  Edges can be simple
     1-1 connections, or many-to-many *hyperedges*.  Edges are named
     and typed into distinct collections called *relations*.  Each
     relation holds edges and their weights, which can be any of the
     standard GraphBLAS types, or a User Defined Type.
+
+    Interally The GraphBLAS works numerically, nodes are idenified by
+    a 60-bit integer key, so one of Graphony&#39;s key tasks is keeping
+    track of node ids and the names they map to.  These mappings are
+    stored in PostgreSQL.
+
+    ## Creating Graphs
 
     To demonstrate, first let&#39;s create a helper function `p()` that
     will iterate results into a list and &#34;pretty print&#34; them.  This
@@ -770,14 +824,16 @@ Graphony offers a shorthand helper for this.</p>
     3 elements, a relation name, a source name, and a destination
     name:
 
+    ## Accumulating Edges
+
     &gt;&gt;&gt; G += (&#39;friend&#39;, &#39;bob&#39;, &#39;alice&#39;)
 
     Strings like `&#39;bob&#39;` and `&#39;alice&#39;` as edge endpoints create new
     graph nodes automatically.  You can also create a node explicity
     and provide properties for that node as well.
 
-    &gt;&gt;&gt; alice = Node(G, &#39;alice&#39;, favorite_color=&#39;blue&#39;)
-    &gt;&gt;&gt; G += (&#39;friend&#39;, alice, &#39;jane&#39;)
+    &gt;&gt;&gt; jane = Node(G, &#39;jane&#39;, favorite_color=&#39;blue&#39;)
+    &gt;&gt;&gt; G += (&#39;friend&#39;, &#39;alice&#39;, jane)
 
     This adds two edges to the `friend` relation, one from bob to
     alice and the other from alice to jane.
@@ -796,6 +852,8 @@ Graphony offers a shorthand helper for this.</p>
 
     &gt;&gt;&gt; G += [(&#39;distance&#39;, &#39;chicago&#39;, &#39;seatle&#39;, 422),
     ...       (&#39;distance&#39;, &#39;seattle&#39;, &#39;portland&#39;, 42)]
+
+    ## Graph Querying
 
     Inspecting G shows that it has three columns and six edges:
 
@@ -838,7 +896,7 @@ Graphony offers a shorthand helper for this.</p>
     The entire graph can also be iterated directly.  This is the same
     as `G()` with no arguments:
 
-    &gt;&gt;&gt; p(list(G))
+    &gt;&gt;&gt; p(G)
     [(friend, bob, alice, True),
      (friend, alice, jane, True),
      (coworker, bob, jane, True),
@@ -867,6 +925,8 @@ Graphony offers a shorthand helper for this.</p>
     forming a multigraph, and multiple sources and destinations can be
     joined by the same edge, forming a hypergraph.
 
+    ## Graph Algorithms
+
     When it&#39;s necessary to run graph algorithms, a relation can be
     *projected* into an adjacency matrix using any GraphBLAS semiring
     by calling the relation with a semring using the syntax
@@ -874,35 +934,50 @@ Graphony offers a shorthand helper for this.</p>
 
     XXX
 
-    Nodes in a graph can be deleted using the `del` keyword:
+    ## Deleting Edges
+
+    Edges in a graph can be deleted using the `del` keyword:
 
     &gt;&gt;&gt; del G[None, None, None]
     &gt;&gt;&gt; p(G)
     []
 
+    ## Query Graphs from SQL
+
     Any tuple producing iterator can be used to construct Graphs.
-    Graphony offers a shorthand helper for this.
+    Graphony offers a shorthand helper for this.  Any query that
+    produces 3 or 4 columns can be used to produce edges into the
+    graph.
 
     &gt;&gt;&gt; G += G.sql(
-    ...    &#34;select &#39;karate&#39;, &#39;karate_&#39; || s_id, &#39;karate_&#39; || d_id &#34;
-    ...    &#34;from graphony.karate&#34;)
+    ...  &#34;select &#39;karate&#39;, &#39;karate_&#39; || s_id, &#39;karate_&#39; || d_id &#34;
+    ...  &#34;from graphony.karate&#34;)
+
     &gt;&gt;&gt; len(G)
     78
 
-    All the new edges are in the karate relation:
+    All the edges are in the karate relation, as defined in the sql
+    query above:
 
     &gt;&gt;&gt; len(G.karate)
     78
+
+    &gt;&gt;&gt; breakpoint()
 
     &#34;&#34;&#34;
 
     _LRU_MAXSIZE = None
 
-    def __init__(self, dsn, max_cache_size=None):
+    def __init__(self, dsn, relations=None, max_cache_size=None):
         self.graph = self
-        self._dsn = dsn
-        self._conn = pg.connect(self._dsn)
-        self._relations = {}
+        self._conn = pg.connect(dsn)
+        if relations is None:
+            relations = {}
+            with self._conn.cursor() as c:
+                c.execute(&#34;select r_id, r_name, r_type from graphony.relation&#34;)
+                for r in c.fetchall():
+                    relations[r[0]] = Relation(self, r[0], r[1], loads(r[2]))
+        self._relations = relations
 
     @lru_cache(maxsize=_LRU_MAXSIZE)
     @query
@@ -932,8 +1007,8 @@ Graphony offers a shorthand helper for this.</p>
     @query
     def _upsert_relation(self, curs):
         &#34;&#34;&#34;
-        INSERT INTO graphony.relation (r_name)
-        VALUES (%s)
+        INSERT INTO graphony.relation (r_name, r_type)
+        VALUES (%s, %s)
         ON CONFLICT (r_name) DO UPDATE SET r_name = EXCLUDED.r_name
         RETURNING r_id
         &#34;&#34;&#34;
@@ -979,7 +1054,7 @@ Graphony offers a shorthand helper for this.</p>
         if eid is None:
             eid = self._new_edge()
 
-        rid = self._upsert_relation(relation)
+        rid = self._upsert_relation(relation, dumps(type(weight)))
         if rid not in self._relations:
             rel = Relation(self, rid, relation, type(weight))
             self._relations[rid] = rel
@@ -1330,7 +1405,7 @@ def destination(self):
 </dd>
 <dt id="graphony.graph.Node"><code class="flex name class">
 <span>class <span class="ident">Node</span></span>
-<span>(</span><span>graph, id, **props)</span>
+<span>(</span><span>relation, id, **props)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -1340,18 +1415,18 @@ def destination(self):
 </summary>
 <pre><code class="python">class Node:
 
-    __slots__ = (&#34;graph&#34;, &#34;id&#34;, &#34;props&#34;)
+    __slots__ = (&#34;relation&#34;, &#34;id&#34;, &#34;props&#34;)
 
-    def __init__(self, graph, id, **props):
+    def __init__(self, relation, id, **props):
         if isinstance(id, str):
-            id = graph._upsert_node(id)
-        self.graph = graph
+            id = relation.graph._upsert_node(id)
+        self.relation = relation
         self.id = id
         self.props = props
 
     @property
     def name(self):
-        return self.graph._get_node_name(self.id)
+        return self.relation.graph._get_node_name(self.id)
 
     def __repr__(self):
         return self.name</code></pre>
@@ -1367,18 +1442,18 @@ def destination(self):
 </summary>
 <pre><code class="python">@property
 def name(self):
-    return self.graph._get_node_name(self.id)</code></pre>
+    return self.relation.graph._get_node_name(self.id)</code></pre>
 </details>
-</dd>
-<dt id="graphony.graph.Node.graph"><code class="name">var <span class="ident">graph</span></code></dt>
-<dd>
-<div class="desc"><p>Return an attribute of instance, which is of type owner.</p></div>
 </dd>
 <dt id="graphony.graph.Node.id"><code class="name">var <span class="ident">id</span></code></dt>
 <dd>
 <div class="desc"><p>Return an attribute of instance, which is of type owner.</p></div>
 </dd>
 <dt id="graphony.graph.Node.props"><code class="name">var <span class="ident">props</span></code></dt>
+<dd>
+<div class="desc"><p>Return an attribute of instance, which is of type owner.</p></div>
+</dd>
+<dt id="graphony.graph.Node.relation"><code class="name">var <span class="ident">relation</span></code></dt>
 <dd>
 <div class="desc"><p>Return an attribute of instance, which is of type owner.</p></div>
 </dd>
@@ -1520,10 +1595,10 @@ def name(self):
 <li>
 <code class="caret"><a title="graphony.graph.Node" href="#graphony.graph.Node">Node</a></code>
 <ul class=" nested ">
-<li><code><a title="graphony.graph.Node.graph" href="#graphony.graph.Node.graph">graph</a></code></li>
 <li><code><a title="graphony.graph.Node.id" href="#graphony.graph.Node.id">id</a></code></li>
 <li><code><a title="graphony.graph.Node.name" href="#graphony.graph.Node.name">name</a></code></li>
 <li><code><a title="graphony.graph.Node.props" href="#graphony.graph.Node.props">props</a></code></li>
+<li><code><a title="graphony.graph.Node.relation" href="#graphony.graph.Node.relation">relation</a></code></li>
 </ul>
 </li>
 <li>

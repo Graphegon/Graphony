@@ -13,6 +13,7 @@ CREATE TABLE graphony.node(
 CREATE TABLE graphony.relation(
     r_id BIGSERIAL,
     r_name TEXT NOT NULL,
+    r_type BYTEA NOT NULL,
     UNIQUE (r_name) INCLUDE (r_id),
     PRIMARY KEY (r_id) INCLUDE (r_name)
     );
