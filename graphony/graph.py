@@ -48,14 +48,20 @@ class Graph:
     >>> db = 'postgres://postgres:postgres@localhost:5433/graphony'
     >>> G = Graph(db)
 
+    ## Accumulating Edges
+
     Relation tuples can be added directly into the Graph with the `+=`
     method.  In their simplest form, a relation is a Python tuple with
     3 elements, a relation name, a source name, and a destination
     name:
 
-    ## Accumulating Edges
+    Before you can add an edge to a relation, it must be declared
+    first.
 
     >>> G.relation('friend')
+
+    Now edges in that relation can be added to the graph:
+
     >>> G += ('friend', 'bob', 'alice')
 
     Strings like `'bob'` and `'alice'` as edge endpoints create new
@@ -73,13 +79,14 @@ class Graph:
 
     An iterator of relation tuples can also be provided:
 
-    >>> G.relation('coworker')
+    >>> G.relation('coworker', incidence=True)
     >>> G += [('coworker', 'bob', 'jane'), ('coworker', 'alice', 'jane')]
 
     As shown above, tuples with 3 elements (triples), are stored as
     boolean edges whose weights are always `True` and therefore can be
-    ommited.  To create edges of a certain type, 4 elements can be
-    provided:
+    ommited.
+
+    To create edges of a certain type, 4 elements can be provided:
 
     >>> G.relation('distance', int)
     >>> G += [('distance', 'chicago', 'seatle', 422),
@@ -144,26 +151,26 @@ class Graph:
     <Adjacency friend BOOL:2>
 
     >>> G.coworker
-    <Adjacency coworker BOOL:2>
+    <Incidence coworker BOOL:2>
 
     Relations can be iterated directly:
 
     >>> p(list(G.friend))
     [(friend, bob, alice, True), (friend, alice, jane, True)]
 
-    Each relation is a pair of incidence matrices, `A` and `B`.  `A`
-    is a graph from source ids to edge ids, `B` is a graph from edge
-    ids to destination ids.  Due to this incidence pair, a relation
-    can store multiple edges between the same source and destination,
-    forming a multigraph, and multiple sources and destinations can be
-    joined by the same edge, forming a hypergraph.
-
     ## Graph Algorithms
 
-    When it's necessary to run graph algorithms, an incidence relation
-    can be *projected* into an adjacency matrix using any GraphBLAS
-    semiring by calling the relation with a semring using the syntax
-    `rel(semiring)`.
+    Graphony uses The GraphBLAS API to store graphs and runs graph
+    algorithms by doing parallel sparse matrix multiplication using
+    the SuiteSparse:GraphBLAS library.
+
+    Matrix multiplication is a very power, but rather abstract
+    approach to writing graph algorithms, and it can be tricky to
+    writem common algorithms optimially form scratch, so Graphony
+    contains some common graph algorithms which can also act as
+    starting points for custom algorithms:
+
+    >>>
 
     ## Query Graphs from SQL
 
@@ -182,8 +189,6 @@ class Graph:
 
     >>> len(G.karate)
     78
-
-    >>> G._conn.commit()
 
     """
 
@@ -280,9 +285,9 @@ class Graph:
 
         rel.add(sid, did, weight)
 
-    def relation(self, name, type=BOOL, adjacency=True):
+    def relation(self, name, type=BOOL, incidence=False):
         rid = self._upsert_relation(name, dumps(type))
-        rel = Relation(self, rid, name, type, adjacency)
+        rel = Relation(self, rid, name, type, incidence)
         self._relations[rid] = rel
 
     def __getitem__(self, key):
@@ -468,31 +473,31 @@ class Relation:
         rid,
         name,
         weight_type,
-        adjacency=True,
+        incidence=False,
         incident_A_type=BOOL,
     ):
         self.graph = graph
         self.rid = rid
         self.name = name
-        self.adjacency = adjacency
-        if adjacency:
-            self.A = Matrix.sparse(weight_type)
-            self.B = None
-        else:
+        self.incidence = incidence
+        if incidence:
             self.A = Matrix.sparse(incident_A_type)
             self.B = Matrix.sparse(weight_type)
+        else:
+            self.A = Matrix.sparse(weight_type)
+            self.B = None
 
     def add(self, sid, did, weight, eid=None, A_weight=True):
-        if self.adjacency:
-            self.A[sid, did] = weight
-        else:
+        if self.incidence:
             if eid is None:
                 eid = self.graph._new_edge()
             self.A[sid, eid] = A_weight
             self.B[eid, did] = weight
+        else:
+            self.A[sid, did] = weight
 
     def __call__(self, semiring=None, *args, **kwargs):
-        if self.adjacency:
+        if not self.incidence:
             return self.A
 
         if semiring is None:
@@ -500,31 +505,31 @@ class Relation:
         return semiring(self.A, self.B, *args, **kwargs)
 
     def __iter__(self):
-        if self.adjacency:
-            for sid, did, weight in self.A:
-                yield Edge(self.graph, self.rid, sid, did, weight)
-        else:
+        if self.incidence:
             for sid, did, eid in self(INT64.any_secondi):
                 w = self.B[eid]
                 for _, weight in w:
                     yield Edge(self.graph, self.rid, sid, did, weight, eid)
+        else:
+            for sid, did, weight in self.A:
+                yield Edge(self.graph, self.rid, sid, did, weight)
 
     def __len__(self):
-        return self.A.nvals if self.adjacency else self.B.nvals
+        return self.B.nvals if self.incidence else self.A.nvals
 
     def __repr__(self):
-        if self.adjacency:
-            A = self.A
-            type = "Adjacency"
-        else:
+        if self.incidence:
             A = self.B
             type = "Incidence"
+        else:
+            A = self.A
+            type = "Adjacency"
         return f"<{type} {self.name} {A.type.__name__}:{A.nvals}>"
 
     def __getitem__(self, key):
         sid, did = key
-        if not self.adjacency:
-            A = self.A.any_second(B)
+        if self.incidence:
+            A = self.A.any_second(self.B)
         else:
             A = self.A
 
