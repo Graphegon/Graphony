@@ -13,16 +13,25 @@ from pygraphblas.base import NoValue
 class Graph:
     """# Hypersparse Multi-property Hypergraphs
 
-    A graph is set of nodes connected by edges.  Edges can be simple
-    1-1 connections, or many-to-many *hyperedges*.  Edges are named
-    and typed into distinct collections called *relations*.  Each
-    relation holds edges and their weights, which can be any of the
-    standard GraphBLAS types, or a User Defined Type.
+    A graph is set of nodes connected by edges.  Edges are typed and
+    group into named collections called *relations*.  Each relation
+    holds edges one of two forms, an [adjancency
+    matrix](https://en.wikipedia.org/wiki/Adjacency_matrix) which can
+    hold a simple graph with directed or undirected 1-to-1 edges, or
+    two [incidence
+    matrices](https://en.wikipedia.org/wiki/Incidence_matrix), which
+    can hold multigraphs and hypergraphs where node and edge
+    relationships can be many-to-many.  In either case the edge
+    weights can be any of the standard GraphBLAS types, or a User
+    Defined Type.
 
     Interally The GraphBLAS works numerically, nodes are idenified by
     a 60-bit integer key, so one of Graphony's key tasks is keeping
     track of node ids and the names they map to.  These mappings are
-    stored in PostgreSQL.
+    stored in PostgreSQL.  It's important to note that the graph
+    structure itself is not stored in PostgreSQL instead the structure
+    is stored in GraphBLAS matrices. Only the node id and name
+    mappings and node and edge properties are stored in the database.
 
     ## Creating Graphs
 
@@ -36,7 +45,8 @@ class Graph:
 
     Now construct a graph that is connected to a database.
 
-    >>> G = Graph('postgres://postgres:postgres@localhost:5433/graphony')
+    >>> db = 'postgres://postgres:postgres@localhost:5433/graphony'
+    >>> G = Graph(db)
 
     Relation tuples can be added directly into the Graph with the `+=`
     method.  In their simplest form, a relation is a Python tuple with
@@ -45,6 +55,7 @@ class Graph:
 
     ## Accumulating Edges
 
+    >>> G.relation('friend')
     >>> G += ('friend', 'bob', 'alice')
 
     Strings like `'bob'` and `'alice'` as edge endpoints create new
@@ -62,6 +73,7 @@ class Graph:
 
     An iterator of relation tuples can also be provided:
 
+    >>> G.relation('coworker')
     >>> G += [('coworker', 'bob', 'jane'), ('coworker', 'alice', 'jane')]
 
     As shown above, tuples with 3 elements (triples), are stored as
@@ -69,6 +81,7 @@ class Graph:
     ommited.  To create edges of a certain type, 4 elements can be
     provided:
 
+    >>> G.relation('distance', int)
     >>> G += [('distance', 'chicago', 'seatle', 422),
     ...       ('distance', 'seattle', 'portland', 42)]
 
@@ -146,20 +159,10 @@ class Graph:
 
     ## Graph Algorithms
 
-    When it's necessary to run graph algorithms, a relation can be
-    *projected* into an adjacency matrix using any GraphBLAS semiring
-    by calling the relation with a semring using the syntax
+    When it's necessary to run graph algorithms, an incidence relation
+    can be *projected* into an adjacency matrix using any GraphBLAS
+    semiring by calling the relation with a semring using the syntax
     `rel(semiring)`.
-
-    XXX
-
-    ## Deleting Edges
-
-    Edges in a graph can be deleted using the `del` keyword:
-
-    >>> del G[None, None, None]
-    >>> p(G)
-    []
 
     ## Query Graphs from SQL
 
@@ -168,12 +171,10 @@ class Graph:
     produces 3 or 4 columns can be used to produce edges into the
     graph.
 
+    >>> G.relation('karate')
     >>> G += G.sql(
     ...  "select 'karate', 'karate_' || s_id, 'karate_' || d_id "
     ...  "from graphony.karate")
-
-    >>> len(G)
-    78
 
     All the edges are in the karate relation, as defined in the sql
     query above:
@@ -250,7 +251,12 @@ class Graph:
         INSERT INTO graphony.edge (e_props) VALUES (null) RETURNING e_id
         """
 
-    def _add(self, relation, source, destination, weight=True, eid=None):
+    def sql(self, query):
+        with self._conn.cursor() as c:
+            c.execute(query)
+            return c.fetchall()
+
+    def add(self, relation, source, destination, weight=True, eid=None):
         """Add an edge to the graph with an optional weight."""
         if not relation.isidentifier() or relation.startswith("_"):
             assert NameError(
@@ -258,6 +264,7 @@ class Graph:
                 "and can only contain letters, numbers, and underscores"
             )
 
+        rel = getattr(self, relation)
         if isinstance(source, Node):
             sid = source.id
         else:
@@ -268,17 +275,12 @@ class Graph:
         else:
             did = self._upsert_node(destination)
 
-        if eid is None:
-            eid = self._new_edge()
+        rel.add(sid, did, weight)
 
-        rid = self._upsert_relation(relation, dumps(type(weight)))
-        if rid not in self._relations:
-            rel = Relation(self, rid, relation, type(weight))
-            self._relations[rid] = rel
-        else:
-            rel = self._relations[rid]
-
-        rel.add(sid, eid, did, weight)
+    def relation(self, name, type=BOOL, adjacency=True):
+        rid = self._upsert_relation(name, dumps(type))
+        rel = Relation(self, rid, name, type, adjacency)
+        self._relations[rid] = rel
 
     def __getitem__(self, key):
         if isinstance(key, int):
@@ -291,12 +293,12 @@ class Graph:
 
     def __iadd__(self, relation):
         if isinstance(relation, tuple):
-            self._add(*relation)
+            self.add(*relation)
         elif isinstance(relation, Graph):
             raise TypeError("todo")
         else:
             for i in relation:
-                self._add(*i)
+                self.add(*i)
         return self
 
     def __len__(self):
@@ -307,7 +309,7 @@ class Graph:
         return f"<Graph [{', '.join([r.name for r in self._relations.values()])}]: {len(self)}>"
 
     def __iter__(self):
-        return self(weighted=True)
+        return self()
 
     def __delitem__(self, key):
         source, relation, destination = key
@@ -350,12 +352,7 @@ class Graph:
             raise AttributeError(name)
         return self._relations[rid]
 
-    def sql(self, query):
-        with self._conn.cursor() as c:
-            c.execute(query)
-            return c.fetchall()
-
-    def __call__(self, relation=None, source=None, destination=None, weighted=True):
+    def __call__(self, relation=None, source=None, destination=None):
         """Query the graph for matching triples.
 
         Source, relation, and/or destination values can be provided, and
@@ -372,133 +369,46 @@ class Graph:
 
                 if destination is not None:  # source,relation,destination
                     did = self[destination]
-                    eids = rel.A[sid]
-                    for eid, _ in eids:
-                        if weighted:
-                            weight = rel.B[eid, did]
-                        yield Edge(
-                            self,
-                            rid,
-                            sid,
-                            did,
-                            weight,
-                            eid,
-                        )
+                    for edge in rel[sid, did]:
+                        yield edge
 
                 else:  # source,relation,None
-                    for did, eid in rel(INT64.any_secondi)[sid]:
-                        destination = self._get_node_name(did)
-                        if weighted:
-                            weight = rel.B[eid, did]
-                        yield Edge(
-                            self,
-                            rid,
-                            sid,
-                            did,
-                            weight,
-                            eid,
-                        )
+                    for edge in rel[sid, :]:
+                        yield edge
             else:
                 if destination is not None:  # source,None,destination
                     did = self[destination]
                     for relation, rel in self._relations.items():
-                        try:
-                            eid = rel(INT64.any_secondi)[sid, did]
-                            if weighted:
-                                weight = rel.B[eid, did]
-                            yield Edge(
-                                self,
-                                rid,
-                                sid,
-                                did,
-                                weight,
-                                eid,
-                            )
-                        except NoValue:
-                            continue
+                        for edge in rel[sid, did]:
+                            yield edge
 
                 else:  # source,None,None
                     for rid, rel in self._relations.items():
-                        try:
-                            for did, eid in rel(INT64.any_secondi)[sid]:
-                                if weighted:
-                                    weight = rel.B[eid, did]
-                                destination = self._get_node_name(did)
-                                yield Edge(
-                                    self,
-                                    rid,
-                                    sid,
-                                    did,
-                                    weight,
-                                    eid,
-                                )
-                        except NoValue:
-                            continue
+                        for edge in rel[sid, :]:
+                            yield edge
 
         elif relation is not None:  # None,relation,?
             rid = self._get_relation_id(relation)
             rel = self._relations[rid]
             if destination is not None:  # None,relation,destination
                 did = self[destination]
-                for sid, eid in rel(INT64.any_secondi)[:, did]:
-                    source = self._get_node_name(sid)
-                    yield Edge(
-                        self,
-                        rid,
-                        sid,
-                        did,
-                        weight,
-                        eid,
-                    )
+                for edge in rel[:, did]:
+                    yield edge
+
             else:  # None,relation,None
-                for sid, did, eid in rel(INT64.any_secondi):
-                    if weighted:
-                        weight = rel.B[eid, did]
-                    source = self._get_node_name(sid)
-                    destination = self._get_node_name(did)
-                    yield Edge(
-                        self,
-                        rid,
-                        sid,
-                        did,
-                        weight,
-                        eid,
-                    )
+                for edge in rel:
+                    yield edge
 
         elif destination is not None:  # None,None,destination
             did = self[destination]
             for rid, rel in self._relations.items():
-                try:
-                    for sid, eid in rel(INT64.any_secondi)[:, did]:
-                        source = self._get_node_name(sid)
-                        if weighted:
-                            weight = rel.B[eid, did]
-                        yield Edge(
-                            self,
-                            rid,
-                            sid,
-                            did,
-                            weight,
-                            eid,
-                        )
-                except NoValue:
-                    continue
+                for edge in rel[:, did]:
+                    yield edge
 
         else:  # None,None,None
             for rid, rel in self._relations.items():
-                for sid, did, eid in rel(INT64.any_secondi):
-                    if weighted:
-                        weight = rel.B[eid, did]
-                    source = self._get_node_name(sid)
-                    destination = self._get_node_name(did)
-                    yield Edge(
-                        self,
-                        rid,
-                        sid,
-                        did,
-                        weight,
-                        eid,
-                    )
+                for edge in rel:
+                    yield edge
 
 
 class Edge(NamedTuple):
@@ -555,33 +465,72 @@ class Relation:
         rid,
         name,
         weight_type,
+        adjacency=True,
+        incident_A_type=BOOL,
     ):
         self.graph = graph
         self.rid = rid
         self.name = name
-        self.A = Matrix.sparse(BOOL)
-        self.B = Matrix.sparse(weight_type)
+        self.adjacency = adjacency
+        if adjacency:
+            self.A = Matrix.sparse(weight_type)
+            self.B = None
+        else:
+            self.A = Matrix.sparse(incident_A_type)
+            self.B = Matrix.sparse(weight_type)
 
-    def add(self, sid, eid, did, weight):
-        self.A[sid, eid] = True
-        self.B[eid, did] = weight
+    def add(self, sid, did, weight, eid=None, A_weight=True):
+        if self.adjacency:
+            self.A[sid, did] = weight
+        else:
+            if eid is None:
+                eid = self.graph._new_edge()
+            self.A[sid, eid] = A_weight
+            self.B[eid, did] = weight
 
     def __call__(self, semiring=None, *args, **kwargs):
+        if self.adjacency:
+            return self.A
+
         if semiring is None:
             semiring = INT64.any_secondi
         return semiring(self.A, self.B, *args, **kwargs)
 
     def __iter__(self):
-        for sid, did, eid in self(INT64.any_secondi):
-            w = self.B[eid]
-            for _, weight in w:
-                yield Edge(self.graph, self.rid, sid, did, weight, eid)
+        if self.adjacency:
+            for sid, did, weight in self.A:
+                yield Edge(self.graph, self.rid, sid, did, weight)
+        else:
+            for sid, did, eid in self(INT64.any_secondi):
+                w = self.B[eid]
+                for _, weight in w:
+                    yield Edge(self.graph, self.rid, sid, did, weight, eid)
 
     def __len__(self):
-        return self.B.nvals
+        return self.A.nvals if self.adjacency else self.B.nvals
 
     def __repr__(self):
-        return f"<{self.B.type.__name__} {self.name}: {self.B.nvals}>"
+        if self.adjacency:
+            A = self.A
+        else:
+            A = self.B
+        return f"<{A.type.__name__} {self.name}: {A.nvals}>"
+
+    def __getitem__(self, key):
+        sid, did = key
+        if not self.adjacency:
+            A = self.A.any_second(B)
+        else:
+            A = self.A
+
+        if isinstance(sid, slice):
+            for sid, weight in A[sid, did]:
+                yield Edge(self.graph, self.rid, sid, did, weight)
+        elif isinstance(did, slice):
+            for did, weight in A[sid, did]:
+                yield Edge(self.graph, self.rid, sid, did, weight)
+        else:
+            yield Edge(self.graph, self.rid, sid, did, A[sid, did])
 
 
 def read_csv(self, fname, **kw):

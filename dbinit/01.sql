@@ -20,7 +20,6 @@ CREATE TABLE graphony.relation(
 
 CREATE TABLE graphony.edge(
     e_id BIGSERIAL PRIMARY KEY,
-    r_id BIGINT REFERENCES graphony.relation(r_id),
     e_props JSONB
     );
 
