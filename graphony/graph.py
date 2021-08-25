@@ -141,9 +141,10 @@ class Graph:
     Relations are accessible as attributes of the graph:
 
     >>> G.friend
-    <BOOL friend: 2>
+    <Adjacency friend BOOL:2>
+
     >>> G.coworker
-    <BOOL coworker: 2>
+    <Adjacency coworker BOOL:2>
 
     Relations can be iterated directly:
 
@@ -182,6 +183,8 @@ class Graph:
     >>> len(G.karate)
     78
 
+    >>> G._conn.commit()
+
     """
 
     _LRU_MAXSIZE = None
@@ -192,7 +195,7 @@ class Graph:
         if relations is None:
             relations = {}
             with self._conn.cursor() as c:
-                c.execute("select r_id, r_name, r_type from graphony.relation")
+                c.execute("select id, r_name, r_type from graphony.relation")
                 for r in c.fetchall():
                     relations[r[0]] = Relation(self, r[0], r[1], loads(r[2]))
         self._relations = relations
@@ -204,21 +207,21 @@ class Graph:
         INSERT INTO graphony.node (n_name)
         VALUES (%s)
         ON CONFLICT (n_name) DO UPDATE SET n_name = EXCLUDED.n_name
-        RETURNING n_id
+        RETURNING id
         """
 
     @lru_cache(maxsize=_LRU_MAXSIZE)
     @query
     def _get_node_id(self, curs):
         """
-        SELECT n_id FROM graphony.node where n_name = %s
+        SELECT id FROM graphony.node where n_name = %s
         """
 
     @lru_cache(maxsize=_LRU_MAXSIZE)
     @query
     def _get_node_name(self, curs):
         """
-        SELECT n_name FROM graphony.node where n_id = %s
+        SELECT n_name FROM graphony.node where id = %s
         """
 
     @lru_cache(maxsize=_LRU_MAXSIZE)
@@ -228,27 +231,27 @@ class Graph:
         INSERT INTO graphony.relation (r_name, r_type)
         VALUES (%s, %s)
         ON CONFLICT (r_name) DO UPDATE SET r_name = EXCLUDED.r_name
-        RETURNING r_id
+        RETURNING id
         """
 
     @lru_cache(maxsize=_LRU_MAXSIZE)
     @query
     def _get_relation_id(self, curs):
         """
-        SELECT r_id FROM graphony.relation where r_name = %s
+        SELECT id FROM graphony.relation where r_name = %s
         """
 
     @lru_cache(maxsize=_LRU_MAXSIZE)
     @query
     def _get_relation_name(self, curs):
         """
-        SELECT r_name FROM graphony.relation where r_id = %s
+        SELECT r_name FROM graphony.relation where id = %s
         """
 
     @query
     def _new_edge(self, curs):
         """
-        INSERT INTO graphony.edge (e_props) VALUES (null) RETURNING e_id
+        INSERT INTO graphony.edge (e_props) VALUES (null) RETURNING id
         """
 
     def sql(self, query):
@@ -512,9 +515,11 @@ class Relation:
     def __repr__(self):
         if self.adjacency:
             A = self.A
+            type = "Adjacency"
         else:
             A = self.B
-        return f"<{A.type.__name__} {self.name}: {A.nvals}>"
+            type = "Incidence"
+        return f"<{type} {self.name} {A.type.__name__}:{A.nvals}>"
 
     def __getitem__(self, key):
         sid, did = key

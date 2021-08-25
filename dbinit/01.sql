@@ -2,25 +2,29 @@ BEGIN;
 
 CREATE SCHEMA graphony;
 
+CREATE TABLE graphony.hyperspace(
+    id BIGSERIAL
+    );
+
 CREATE TABLE graphony.node(
-    n_id BIGSERIAL,
     n_name TEXT NOT NULL,
     n_props JSONB,
-    UNIQUE (n_name) INCLUDE (n_id),
-    PRIMARY KEY (n_id) INCLUDE (n_name)
-    );
+    UNIQUE (n_name) INCLUDE (id),
+    PRIMARY KEY (id) INCLUDE (n_name)
+    ) INHERITS (graphony.hyperspace);
 
 CREATE TABLE graphony.relation(
-    r_id BIGSERIAL,
     r_name TEXT NOT NULL,
     r_type BYTEA NOT NULL,
-    UNIQUE (r_name) INCLUDE (r_id),
-    PRIMARY KEY (r_id) INCLUDE (r_name)
-    );
+    UNIQUE (r_name) INCLUDE (id),
+    PRIMARY KEY (id) INCLUDE (r_name)
+    ) INHERITS (graphony.hyperspace);
+
+CREATE INDEX ON graphony.relation (r_type);
 
 CREATE TABLE graphony.edge(
-    e_id BIGSERIAL PRIMARY KEY,
-    e_props JSONB
-    );
+    e_props JSONB,
+    PRIMARY KEY (id)
+    ) INHERITS (graphony.hyperspace);
 
 COMMIT;
