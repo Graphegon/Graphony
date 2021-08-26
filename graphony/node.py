@@ -1,3 +1,6 @@
+""" Node objects. """
+
+
 from psycopg2.extras import Json
 
 
@@ -18,6 +21,7 @@ class Node:
 
     @property
     def name(self):
+        """Lookup and return node name."""
         return self.graph._get_node_name(self.n_id)
 
     def __repr__(self):

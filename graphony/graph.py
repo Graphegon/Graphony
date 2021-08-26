@@ -83,6 +83,7 @@ class Graph:
         """
 
     def sql(self, sql_code):
+        """Helper method to execute a SQL query and fetch results."""
         with self._conn.cursor() as c:
             c.execute(sql_code)
             return c.fetchall()
@@ -106,6 +107,7 @@ class Graph:
         rel.add(source, destination, weight)
 
     def relation(self, name, weight_type=None, incidence=False):
+        """Add a new relation"""
         rid = self._upsert_relation(name, dumps(weight_type))
         rel = Relation(self, rid, name, weight_type, incidence)
         self.relations[rid] = rel
@@ -236,10 +238,11 @@ class Graph:
                     yield edge
 
 
-def read_csv(self, fname, encoding="utf8", **kw):
+def read_csv(graph, fname, encoding="utf8", **kw):
+    """Read a csv file and accuulate it into a graph"""
 
     with open(fname, encoding=encoding) as fd:
         rd = csv.reader(fd, **kw)
         for row in rd:
             if row:
-                self += tuple(row)
+                graph += tuple(row)

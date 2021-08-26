@@ -1,10 +1,11 @@
+""" Utilities """
 from functools import wraps
 from textwrap import dedent
 
 GxB_INDEX_MAX = 1 << 60
 
 
-def _f_no_doc():
+def _f_no_doc():  # noqa
     pass
 
 
@@ -16,6 +17,8 @@ _no_codes = (_f_no_doc.__code__.co_code, _f_doc.__code__.co_code)
 
 
 def curse(func):
+    """Wrap a function in a database cursor and pass it as first arg."""
+
     @wraps(func)
     def _decorator(self, *args, **kwargs):
         with self.graph._conn.cursor() as curs:
@@ -27,6 +30,11 @@ def curse(func):
 
 
 def query(f):
+    """Parse a function docstring for SQL and execute it in a new cursor.
+    If there is a function body, call it with the cursor, if there is
+    no body, return cursor.fetchone()
+
+    """
     d = dedent(f.__doc__.split("\n", 1)[1])
     doc_query = (
         "\n".join(line for line in d.split("\n") if line.startswith("    ")) or d

@@ -1,3 +1,5 @@
+""" Edge objects. """
+
 from typing import NamedTuple
 from .node import Node
 
@@ -19,12 +21,15 @@ class Edge(NamedTuple):
 
     @property
     def relation(self):
+        """Return edge relation."""
         return self.graph.relations[self.rid]
 
     @property
     def source(self):
+        """Return edge source."""
         return Node(self.graph, self.sid)
 
     @property
     def destination(self):
+        """Return edge destination"""
         return Node(self.graph, self.did)

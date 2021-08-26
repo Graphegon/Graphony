@@ -1,3 +1,5 @@
+"""Relation objects.
+"""
 from pygraphblas import Matrix, BOOL, INT64
 
 from .edge import Edge
@@ -31,6 +33,7 @@ class Relation:
             self.B = None
 
     def add(self, source, destination, weight, eid=None, A_weight=True):
+        """Add an edge to this relation."""
         if self.incidence:
             if eid is None:
                 eid = self.graph._new_edge()
