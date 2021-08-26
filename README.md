@@ -3,48 +3,16 @@
 Graphony is a Python library for doing high-performance graph analysis
 using the GraphBLAS over sparse and hypersparse data sets.
 
-Graphony stores graph edges in [GraphBLAS
-Matrices](https://graphegon.github.io/pygraphblas/pygraphblas/index.html#pygraphblas.Matrix)
-and node and edge properties in [PostgreSQL](https://postgresql.org).
+Graphony uses
+[pygraphblas](https://graphegon.github.io/pygraphblas/pygraphblas/index.html)
+to store graph data in sparse [GraphBLAS
+Matrices](http://graphblas.org) and node and edge properties in
+[PostgreSQL](https://postgresql.org).
 
 Graphony's primary role is to easily construct graph matrices and
 manage symbolic names and properties for graphs, nodes, relations and
-edges, and can be used to easily construct, save and manage data in
-a simple project directory format.
-
-Graphony consists of four concepts:
-
-  - Graph: Top level object that contains all graph data in
-    sub-graphs called *relations*.
-
-    Graphs can be any combination of:
-
-    - [Simple](https://en.wikipedia.org/wiki/Graph_(discrete_mathematics)#Graph):
-      an edge connects one source to one destination.
-
-    - [Hypergraph](https://en.wikipedia.org/wiki/Hypergraph): a graph
-      with at lest one *hyperedge* connecting multiple source nodes to
-      multiple destinations.
-
-    - [Multigraph](https://en.wikipedia.org/wiki/Multigraph): multiple
-      edges can exist between a source and destination.
-
-    - [Property
-      Graph](http://graphdatamodeling.com/Graph%20Data%20Modeling/GraphDataModeling/page/PropertyGraphs.html):
-      Nodes and and Edges can have arbitrary JSON properties.
-
-  - Relation: A named, typed sub-graph that holds edges.  A
-    relation consists of two GraphBLAS [Incidence
-    Matrices](https://en.wikipedia.org/wiki/Incidence_matrix) that can
-    be multiplied to project an adjacency with themselves, or any
-    other combination of relations.
-
-  - Edge: Relation edges can be simple point to point edges or
-    hyperedges that represent relations between multiple incoming and
-    outgoing nodes.
-
-
-# Hypersparse Multi-property Hypergraphs
+edges, and can be used to easily construct, save and manage data in a
+simple project directory format.
 
 A graph is set of nodes connected by edges.  Edges are typed and
 group into named collections called *relations*.  Each relation
@@ -84,6 +52,39 @@ from graphony import Graph, Node
 db = 'postgres://postgres:postgres@localhost:5433/graphony'
 G = Graph(db)
 ```
+
+Graphony consists of four concepts:
+
+  - Graph: Top level object that contains all graph data in
+    sub-graphs called *relations*.
+
+    Graphs can be any combination of:
+
+    - [Simple](https://en.wikipedia.org/wiki/Graph_(discrete_mathematics)#Graph):
+      an edge connects one source to one destination.
+
+    - [Hypergraph](https://en.wikipedia.org/wiki/Hypergraph): a graph
+      with at lest one *hyperedge* connecting multiple source nodes to
+      multiple destinations.
+
+    - [Multigraph](https://en.wikipedia.org/wiki/Multigraph): multiple
+      edges can exist between a source and destination.
+
+    - [Property
+      Graph](http://graphdatamodeling.com/Graph%20Data%20Modeling/GraphDataModeling/page/PropertyGraphs.html):
+      Nodes and and Edges can have arbitrary JSON properties.
+
+  - Relation: A named, typed sub-graph that holds edges.  A
+    relation consists of two GraphBLAS [Incidence
+    Matrices](https://en.wikipedia.org/wiki/Incidence_matrix) that can
+    be multiplied to project an adjacency with themselves, or any
+    other combination of relations.
+
+  - Edge: Relation edges can be simple point to point edges or
+    hyperedges that represent relations between multiple incoming and
+    outgoing nodes.
+    
+  - Node: A node in the graph.
 
 ## Accumulating Edges
 

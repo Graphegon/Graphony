@@ -22,7 +22,7 @@ class Graph:
         if relations is None:
             relations = {}
             with self._conn.cursor() as c:
-                c.execute("select id, r_name, r_type from graphony.relation")
+                c.execute("select id, name, pytype from graphony.relation")
                 for r in c.fetchall():
                     relations[r[0]] = Relation(self, r[0], r[1], loads(r[2]))
         self._relations = relations
@@ -31,9 +31,9 @@ class Graph:
     @query
     def _upsert_node(self, curs):
         """
-        INSERT INTO graphony.node (n_name, n_props)
+        INSERT INTO graphony.node (name, props)
         VALUES (%s, %s)
-        ON CONFLICT (n_name) DO UPDATE SET n_name = EXCLUDED.n_name
+        ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name
         RETURNING id
         """
 
@@ -41,23 +41,23 @@ class Graph:
     @query
     def _get_node_id(self, curs):
         """
-        SELECT id FROM graphony.node where n_name = %s
+        SELECT id FROM graphony.node where name = %s
         """
 
     @lru_cache(maxsize=_LRU_MAXSIZE)
     @query
     def _get_node_name(self, curs):
         """
-        SELECT n_name FROM graphony.node where id = %s
+        SELECT name FROM graphony.node where id = %s
         """
 
     @lru_cache(maxsize=_LRU_MAXSIZE)
     @query
     def _upsert_relation(self, curs):
         """
-        INSERT INTO graphony.relation (r_name, r_type)
+        INSERT INTO graphony.relation (name, pytype)
         VALUES (%s, %s)
-        ON CONFLICT (r_name) DO UPDATE SET r_name = EXCLUDED.r_name
+        ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name
         RETURNING id
         """
 
@@ -65,20 +65,20 @@ class Graph:
     @query
     def _get_relation_id(self, curs):
         """
-        SELECT id FROM graphony.relation where r_name = %s
+        SELECT id FROM graphony.relation where name = %s
         """
 
     @lru_cache(maxsize=_LRU_MAXSIZE)
     @query
     def _get_relation_name(self, curs):
         """
-        SELECT r_name FROM graphony.relation where id = %s
+        SELECT name FROM graphony.relation where id = %s
         """
 
     @query
     def _new_edge(self, curs):
         """
-        INSERT INTO graphony.edge (e_props) VALUES (null) RETURNING id
+        INSERT INTO graphony.edge (props) VALUES (null) RETURNING id
         """
 
     def sql(self, query):
