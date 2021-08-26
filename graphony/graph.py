@@ -89,7 +89,7 @@ class Graph:
     To create edges of a certain type, 4 elements can be provided:
 
     >>> G.relation('distance', int)
-    >>> G += [('distance', 'chicago', 'seatle', 422),
+    >>> G += [('distance', 'chicago', 'seattle', 422),
     ...       ('distance', 'seattle', 'portland', 42)]
 
     ## Graph Querying
