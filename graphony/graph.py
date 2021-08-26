@@ -2,6 +2,7 @@ from typing import NamedTuple
 from operator import attrgetter
 from functools import lru_cache
 import psycopg2 as pg
+from psycopg2.extras import Json
 from pickle import dumps, loads
 
 from .util import lazy, query
@@ -11,186 +12,7 @@ from pygraphblas.base import NoValue
 
 
 class Graph:
-    """# Hypersparse Multi-property Hypergraphs
-
-    A graph is set of nodes connected by edges.  Edges are typed and
-    group into named collections called *relations*.  Each relation
-    holds edges one of two forms, an [adjancency
-    matrix](https://en.wikipedia.org/wiki/Adjacency_matrix) which can
-    hold a simple graph with directed or undirected 1-to-1 edges, or
-    two [incidence
-    matrices](https://en.wikipedia.org/wiki/Incidence_matrix), which
-    can hold multigraphs and hypergraphs where node and edge
-    relationships can be many-to-many.  In either case the edge
-    weights can be any of the standard GraphBLAS types, or a User
-    Defined Type.
-
-    Interally The GraphBLAS works numerically, nodes are idenified by
-    a 60-bit integer key, so one of Graphony's key tasks is keeping
-    track of node ids and the names they map to.  These mappings are
-    stored in PostgreSQL.  It's important to note that the graph
-    structure itself is not stored in PostgreSQL instead the structure
-    is stored in GraphBLAS matrices. Only the node id and name
-    mappings and node and edge properties are stored in the database.
-
-    ## Creating Graphs
-
-    To demonstrate, first let's create a helper function `p()` that
-    will iterate results into a list and "pretty print" them.  This
-    isn't necessary to use Graphony, but is only to help format and
-    verify the output of this documentation:
-
-    >>> import pprint
-    >>> p = lambda r: pprint.pprint(sorted(list(r)))
-
-    Now construct a graph that is connected to a database.
-
-    >>> db = 'postgres://postgres:postgres@localhost:5433/graphony'
-    >>> G = Graph(db)
-
-    ## Accumulating Edges
-
-    Relation tuples can be added directly into the Graph with the `+=`
-    method.  In their simplest form, a relation is a Python tuple with
-    3 elements, a relation name, a source name, and a destination
-    name:
-
-    Before you can add an edge to a relation, it must be declared
-    first.
-
-    >>> G.relation('friend')
-
-    Now edges in that relation can be added to the graph:
-
-    >>> G += ('friend', 'bob', 'alice')
-
-    Strings like `'bob'` and `'alice'` as edge endpoints create new
-    graph nodes automatically.  You can also create a node explicity
-    and provide properties for that node as well.
-
-    >>> jane = Node(G, 'jane', favorite_color='blue')
-    >>> G += ('friend', 'alice', jane)
-
-    This adds two edges to the `friend` relation, one from bob to
-    alice and the other from alice to jane.
-
-    >>> p(G)
-    [(friend, bob, alice, True), (friend, alice, jane, True)]
-
-    An iterator of relation tuples can also be provided:
-
-    >>> G.relation('coworker', incidence=True)
-    >>> G += [('coworker', 'bob', 'jane'), ('coworker', 'alice', 'jane')]
-
-    As shown above, tuples with 3 elements (triples), are stored as
-    boolean edges whose weights are always `True` and therefore can be
-    ommited.
-
-    To create edges of a certain type, 4 elements can be provided:
-
-    >>> G.relation('distance', int)
-    >>> G += [('distance', 'chicago', 'seattle', 422),
-    ...       ('distance', 'seattle', 'portland', 42)]
-
-    ## Graph Querying
-
-    Inspecting G shows that it has three columns and six edges:
-
-    >>> G
-    <Graph [friend, coworker, distance]: 6>
-
-    The graph can then be called like `G(...)` to examine it.  A query
-    consists of three optional arguments for `relation`, 'source' and
-    `destination`.  The default value for all three is None, which
-    acts as a wildcard to matches all values.
-
-    >>> p(G())
-    [(friend, bob, alice, True),
-     (friend, alice, jane, True),
-     (coworker, bob, jane, True),
-     (coworker, alice, jane, True),
-     (distance, chicago, seattle, 422),
-     (distance, seattle, portland, 42)]
-
-    Only print relations where `bob` is the src:
-
-    >>> p(G(source='bob'))
-    [(friend, bob, alice, True), (coworker, bob, jane, True)]
-
-    Only print relations where `coworker` is the relation:
-
-    >>> p(G(relation='coworker'))
-    [(coworker, bob, jane, True), (coworker, alice, jane, True)]
-
-    Only print relations where `jane` is the dest:
-
-    >>> p(G(destination='jane'))
-    [(friend, alice, jane, True),
-     (coworker, bob, jane, True),
-     (coworker, alice, jane, True)]
-
-    >>> p(G(source='bob', relation='coworker', destination='jane'))
-    [(coworker, bob, jane, True)]
-
-    The entire graph can also be iterated directly.  This is the same
-    as `G()` with no arguments:
-
-    >>> p(G)
-    [(friend, bob, alice, True),
-     (friend, alice, jane, True),
-     (coworker, bob, jane, True),
-     (coworker, alice, jane, True),
-     (distance, chicago, seattle, 422),
-     (distance, seattle, portland, 42)]
-
-    Edges can be tested to see if they are contained in the Graph:
-
-    Relations are accessible as attributes of the graph:
-
-    >>> G.friend
-    <Adjacency friend BOOL:2>
-
-    >>> G.coworker
-    <Incidence coworker BOOL:2>
-
-    Relations can be iterated directly:
-
-    >>> p(list(G.friend))
-    [(friend, bob, alice, True), (friend, alice, jane, True)]
-
-    ## Graph Algorithms
-
-    Graphony uses The GraphBLAS API to store graphs and runs graph
-    algorithms by doing parallel sparse matrix multiplication using
-    the SuiteSparse:GraphBLAS library.
-
-    Matrix multiplication is a very power, but rather abstract
-    approach to writing graph algorithms, and it can be tricky to
-    writem common algorithms optimially form scratch, so Graphony
-    contains some common graph algorithms which can also act as
-    starting points for custom algorithms:
-
-    >>>
-
-    ## Query Graphs from SQL
-
-    Any tuple producing iterator can be used to construct Graphs.
-    Graphony offers a shorthand helper for this.  Any query that
-    produces 3 or 4 columns can be used to produce edges into the
-    graph.
-
-    >>> G.relation('karate')
-    >>> G += G.sql(
-    ...  "select 'karate', 'karate_' || s_id, 'karate_' || d_id "
-    ...  "from graphony.karate")
-
-    All the edges are in the karate relation, as defined in the sql
-    query above:
-
-    >>> len(G.karate)
-    78
-
-    """
+    """ """
 
     _LRU_MAXSIZE = None
 
@@ -209,8 +31,8 @@ class Graph:
     @query
     def _upsert_node(self, curs):
         """
-        INSERT INTO graphony.node (n_name)
-        VALUES (%s)
+        INSERT INTO graphony.node (n_name, n_props)
+        VALUES (%s, %s)
         ON CONFLICT (n_name) DO UPDATE SET n_name = EXCLUDED.n_name
         RETURNING id
         """
@@ -450,7 +272,7 @@ class Node:
 
     def __init__(self, graph, id, **props):
         if isinstance(id, str):
-            id = graph._upsert_node(id)
+            id = graph._upsert_node(id, Json(props))
 
         self.graph = graph
         self.id = id

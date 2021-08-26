@@ -1,4 +1,4 @@
-from .graph import Graph
+from .graph import Graph, Relation, Edge, Node
 
 
 def doctest(raise_on_error=False):
