@@ -34,4 +34,5 @@ jobs:
     - name: Test
       run: |
         docker-compose up -d db
+        sleep 10
         ./test.sh
