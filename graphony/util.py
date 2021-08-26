@@ -1,6 +1,5 @@
 from functools import wraps
 from textwrap import dedent
-from lazy_property import LazyWritableProperty as lazy
 
 GxB_INDEX_MAX = 1 << 60
 
@@ -11,7 +10,6 @@ def _f_no_doc():
 
 def _f_doc():
     " "
-    pass
 
 
 _no_codes = (_f_no_doc.__code__.co_code, _f_doc.__code__.co_code)
@@ -43,15 +41,15 @@ def query(f):
         params = args[:arg_count]
         kw2 = kwargs.copy()
         kw2["self"] = self
-        query = eval("""f'''""" + doc_query + """'''""", kw2)
-        cursor.execute(query, params or None)
+        _query = eval("""f'''""" + doc_query + """'''""", kw2)  # noqa
+        cursor.execute(_query, params or None)
         r = f(self, cursor, *args[arg_count:], **kwargs)
         if code:
             return r
-        else:
-            r = cursor.fetchone()
-            if r is not None:
-                r = r[0]
-            return r
+
+        r = cursor.fetchone()
+        if r is not None:
+            r = r[0]
+        return r
 
     return curse(wrapper)

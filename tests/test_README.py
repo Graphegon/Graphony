@@ -8,11 +8,12 @@ from phmdoctest.fixture import managenamespace
 def _phm_setup_doctest_teardown(doctest_namespace, managenamespace):
     # setup code line 47.
     import pprint
+
     p = lambda r: pprint.pprint(sorted(list(r)))
 
     from graphony import Graph, Node
 
-    db = 'postgres://postgres:postgres@localhost:5433/graphony'
+    db = "postgres://postgres:postgres@localhost:5433/graphony"
     G = Graph(db)
 
     managenamespace(operation="update", additions=locals())
