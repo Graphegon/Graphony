@@ -137,7 +137,7 @@ class Graph:
      (friend, alice, jane, True),
      (coworker, bob, jane, True),
      (coworker, alice, jane, True),
-     (distance, chicago, seatle, 422),
+     (distance, chicago, seattle, 422),
      (distance, seattle, portland, 42)]
 
     Only print relations where `bob` is the src:
@@ -168,7 +168,7 @@ class Graph:
      (friend, alice, jane, True),
      (coworker, bob, jane, True),
      (coworker, alice, jane, True),
-     (distance, chicago, seatle, 422),
+     (distance, chicago, seattle, 422),
      (distance, seattle, portland, 42)]
 
     Edges can be tested to see if they are contained in the Graph:
@@ -301,17 +301,14 @@ class Graph:
             )
 
         rel = getattr(self, relation)
-        if isinstance(source, Node):
-            sid = source.id
-        else:
-            sid = self._upsert_node(source)
 
-        if isinstance(destination, Node):
-            did = destination.id
-        else:
-            did = self._upsert_node(destination)
+        if isinstance(source, str):
+            source = Node(self, source)
 
-        rel.add(sid, did, weight)
+        if isinstance(destination, str):
+            destination = Node(self, destination)
+
+        rel.add(source, destination, weight)
 
     def relation(self, name, type=BOOL, incidence=False):
         rid = self._upsert_relation(name, dumps(type))
@@ -482,6 +479,7 @@ class Node:
     def __init__(self, graph, id, **props):
         if isinstance(id, str):
             id = graph._upsert_node(id)
+
         self.graph = graph
         self.id = id
         self.props = props
@@ -515,14 +513,15 @@ class Relation:
             self.A = Matrix.sparse(weight_type)
             self.B = None
 
-    def add(self, sid, did, weight, eid=None, A_weight=True):
+    def add(self, source, destination, weight, eid=None, A_weight=True):
         if self.incidence:
             if eid is None:
                 eid = self.graph._new_edge()
-            self.A[sid, eid] = A_weight
-            self.B[eid, did] = weight
+
+            self.A[source.id, eid] = A_weight
+            self.B[eid, destination.id] = weight
         else:
-            self.A[sid, did] = weight
+            self.A[source.id, destination.id] = weight
 
     def __call__(self, semiring=None, *args, **kwargs):
         if not self.incidence:
@@ -679,7 +678,7 @@ acts as a wildcard to matches all values.</p>
  (friend, alice, jane, True),
  (coworker, bob, jane, True),
  (coworker, alice, jane, True),
- (distance, chicago, seatle, 422),
+ (distance, chicago, seattle, 422),
  (distance, seattle, portland, 42)]
 </code></pre>
 <p>Only print relations where <code>bob</code> is the src:</p>
@@ -707,7 +706,7 @@ as <code>G()</code> with no arguments:</p>
  (friend, alice, jane, True),
  (coworker, bob, jane, True),
  (coworker, alice, jane, True),
- (distance, chicago, seatle, 422),
+ (distance, chicago, seattle, 422),
  (distance, seattle, portland, 42)]
 </code></pre>
 <p>Edges can be tested to see if they are contained in the Graph:</p>
@@ -855,7 +854,7 @@ query above:</p>
      (friend, alice, jane, True),
      (coworker, bob, jane, True),
      (coworker, alice, jane, True),
-     (distance, chicago, seatle, 422),
+     (distance, chicago, seattle, 422),
      (distance, seattle, portland, 42)]
 
     Only print relations where `bob` is the src:
@@ -886,7 +885,7 @@ query above:</p>
      (friend, alice, jane, True),
      (coworker, bob, jane, True),
      (coworker, alice, jane, True),
-     (distance, chicago, seatle, 422),
+     (distance, chicago, seattle, 422),
      (distance, seattle, portland, 42)]
 
     Edges can be tested to see if they are contained in the Graph:
@@ -1019,17 +1018,14 @@ query above:</p>
             )
 
         rel = getattr(self, relation)
-        if isinstance(source, Node):
-            sid = source.id
-        else:
-            sid = self._upsert_node(source)
 
-        if isinstance(destination, Node):
-            did = destination.id
-        else:
-            did = self._upsert_node(destination)
+        if isinstance(source, str):
+            source = Node(self, source)
 
-        rel.add(sid, did, weight)
+        if isinstance(destination, str):
+            destination = Node(self, destination)
+
+        rel.add(source, destination, weight)
 
     def relation(self, name, type=BOOL, incidence=False):
         rid = self._upsert_relation(name, dumps(type))
@@ -1199,17 +1195,14 @@ query above:</p>
         )
 
     rel = getattr(self, relation)
-    if isinstance(source, Node):
-        sid = source.id
-    else:
-        sid = self._upsert_node(source)
 
-    if isinstance(destination, Node):
-        did = destination.id
-    else:
-        did = self._upsert_node(destination)
+    if isinstance(source, str):
+        source = Node(self, source)
 
-    rel.add(sid, did, weight)</code></pre>
+    if isinstance(destination, str):
+        destination = Node(self, destination)
+
+    rel.add(source, destination, weight)</code></pre>
 </details>
 </dd>
 <dt id="graphony.graph.Graph.relation"><code class="name flex">
@@ -1347,6 +1340,7 @@ def destination(self):
     def __init__(self, graph, id, **props):
         if isinstance(id, str):
             id = graph._upsert_node(id)
+
         self.graph = graph
         self.id = id
         self.props = props
@@ -1417,14 +1411,15 @@ def name(self):
             self.A = Matrix.sparse(weight_type)
             self.B = None
 
-    def add(self, sid, did, weight, eid=None, A_weight=True):
+    def add(self, source, destination, weight, eid=None, A_weight=True):
         if self.incidence:
             if eid is None:
                 eid = self.graph._new_edge()
-            self.A[sid, eid] = A_weight
-            self.B[eid, did] = weight
+
+            self.A[source.id, eid] = A_weight
+            self.B[eid, destination.id] = weight
         else:
-            self.A[sid, did] = weight
+            self.A[source.id, destination.id] = weight
 
     def __call__(self, semiring=None, *args, **kwargs):
         if not self.incidence:
@@ -1475,7 +1470,7 @@ def name(self):
 <h3 class="caret">Methods</h3>
 <dl class="nested active">
 <dt id="graphony.graph.Relation.add"><code class="name flex">
-<span>def <span class="ident">add</span></span>(<span>self, sid, did, weight, eid=None, A_weight=True)</span>
+<span>def <span class="ident">add</span></span>(<span>self, source, destination, weight, eid=None, A_weight=True)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -1483,14 +1478,15 @@ def name(self):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def add(self, sid, did, weight, eid=None, A_weight=True):
+<pre><code class="python">def add(self, source, destination, weight, eid=None, A_weight=True):
     if self.incidence:
         if eid is None:
             eid = self.graph._new_edge()
-        self.A[sid, eid] = A_weight
-        self.B[eid, did] = weight
+
+        self.A[source.id, eid] = A_weight
+        self.B[eid, destination.id] = weight
     else:
-        self.A[sid, did] = weight</code></pre>
+        self.A[source.id, destination.id] = weight</code></pre>
 </details>
 </dd>
 </dl>

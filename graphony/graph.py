@@ -109,7 +109,7 @@ class Graph:
      (friend, alice, jane, True),
      (coworker, bob, jane, True),
      (coworker, alice, jane, True),
-     (distance, chicago, seatle, 422),
+     (distance, chicago, seattle, 422),
      (distance, seattle, portland, 42)]
 
     Only print relations where `bob` is the src:
@@ -140,7 +140,7 @@ class Graph:
      (friend, alice, jane, True),
      (coworker, bob, jane, True),
      (coworker, alice, jane, True),
-     (distance, chicago, seatle, 422),
+     (distance, chicago, seattle, 422),
      (distance, seattle, portland, 42)]
 
     Edges can be tested to see if they are contained in the Graph:
@@ -273,17 +273,14 @@ class Graph:
             )
 
         rel = getattr(self, relation)
-        if isinstance(source, Node):
-            sid = source.id
-        else:
-            sid = self._upsert_node(source)
 
-        if isinstance(destination, Node):
-            did = destination.id
-        else:
-            did = self._upsert_node(destination)
+        if isinstance(source, str):
+            source = Node(self, source)
 
-        rel.add(sid, did, weight)
+        if isinstance(destination, str):
+            destination = Node(self, destination)
+
+        rel.add(source, destination, weight)
 
     def relation(self, name, type=BOOL, incidence=False):
         rid = self._upsert_relation(name, dumps(type))
@@ -454,6 +451,7 @@ class Node:
     def __init__(self, graph, id, **props):
         if isinstance(id, str):
             id = graph._upsert_node(id)
+
         self.graph = graph
         self.id = id
         self.props = props
@@ -487,14 +485,15 @@ class Relation:
             self.A = Matrix.sparse(weight_type)
             self.B = None
 
-    def add(self, sid, did, weight, eid=None, A_weight=True):
+    def add(self, source, destination, weight, eid=None, A_weight=True):
         if self.incidence:
             if eid is None:
                 eid = self.graph._new_edge()
-            self.A[sid, eid] = A_weight
-            self.B[eid, did] = weight
+
+            self.A[source.id, eid] = A_weight
+            self.B[eid, destination.id] = weight
         else:
-            self.A[sid, did] = weight
+            self.A[source.id, destination.id] = weight
 
     def __call__(self, semiring=None, *args, **kwargs):
         if not self.incidence:
