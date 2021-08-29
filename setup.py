@@ -1,5 +1,5 @@
-from setuptools import setup
 import os
+from setuptools import setup
 
 setup(
     name="graphony",
@@ -8,5 +8,10 @@ setup(
     author="Michel Pelletier",
     packages=["graphony"],
     setup_requires=["pygraphblas"],
-    install_requires=["pygraphblas", "psycopg2-binary", "lazy-property"],
+    install_requires=[
+        "postgresql-wheel",
+        "pygraphblas",
+        "psycopg2-binary",
+        "lazy-property",
+    ],
 )

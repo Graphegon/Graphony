@@ -6,6 +6,6 @@ CREATE TABLE graphony.karate(
     d_id integer
     );
 
-COPY graphony.karate FROM '/docker-entrypoint-initdb.d/karate.mtx' (DELIMITER ' ');
+\COPY graphony.karate FROM 'dbinit/karate.mtx' (DELIMITER ' ');
     
 COMMIT;
