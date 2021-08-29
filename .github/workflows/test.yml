@@ -20,7 +20,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install flake8 pytest pylint phmdoctest pygraphblas docker-compose
+        pip install flake8 pytest pylint phmdoctest pygraphblas
         python setup.py install
     - name: Lint
       run: |
@@ -30,6 +30,4 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test
       run: |
-        docker-compose up -d db
-        sleep 10
         ./test.sh
