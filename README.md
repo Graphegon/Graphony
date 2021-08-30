@@ -44,17 +44,11 @@ connect it to a database:
 
 <!--phmdoctest-setup-->
 ```python3
-import os
 import pprint
 import postgresql
 from graphony import Graph, Node
 p = lambda r: pprint.pprint(sorted(list(r)))
-rt = os.environ.get('RUNNER_TEMP')
-if rt:
-    tmp_dir = rt
-else:
-    tmp_dir = None
-pgdata, db_conn_string = postgresql.setup(tmp_dir)
+pgdata, db_conn_string = postgresql.setup()
 postgresql.psql(f'-d "{db_conn_string}" -f dbinit/01.sql -f dbinit/02.sql')
 G = Graph(db_conn_string)
 ```
