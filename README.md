@@ -18,21 +18,32 @@ A graph is set of nodes connected by edges.  Edges are typed and
 group into named collections called *relations*.  Each relation
 holds edges one of two forms, an [adjancency
 matrix](https://en.wikipedia.org/wiki/Adjacency_matrix) which can
-hold a simple graph with directed or undirected 1-to-1 edges, or
-two [incidence
-matrices](https://en.wikipedia.org/wiki/Incidence_matrix), which
-can hold multigraphs and hypergraphs where node and edge
-relationships can be many-to-many.  In either case the edge
-weights can be any of the standard GraphBLAS types, or a User
-Defined Type.
+hold a simple graph with directed or undirected 1-to-1 edges.
 
-Interally The GraphBLAS works numerically, nodes are idenified by
-a 60-bit integer key, so one of Graphony's key tasks is keeping
-track of node ids and the names they map to.  These mappings are
-stored in PostgreSQL.  It's important to note that the graph
-structure itself is not stored in PostgreSQL instead the structure
-is stored in GraphBLAS matrices. Only the node id and name
-mappings and node and edge properties are stored in the database.
+![An adjacency matrix](./docs/Incidence.png)
+
+Or two [incidence
+matrices](https://en.wikipedia.org/wiki/Incidence_matrix), which can
+hold multigraphs and hypergraphs where node and edge relationships can
+be many-to-many.  In either case the edge weights can be any of the
+standard GraphBLAS types, or a User Defined Type.
+
+![An incidence matrix](./docs/Incidence.png)
+
+It's usually very helpful to be able to project a pair of incidence
+matrices to an adjacency matrix using matrix multiplication.  This
+"collapses" a hypergraph into a regular directed graph with simple
+edges:
+
+![Projecting An incidence matrix to adjacency](./docs/Projection.png)
+
+Interally The GraphBLAS works row and column position indexes, which
+are a 60-bit integer key, so one of Graphony's key tasks is keeping
+track of node indexes and the names they map to.  These mappings are
+stored in PostgreSQL.  It's important to note that the graph structure
+itself is not stored in PostgreSQL instead the structure is stored in
+GraphBLAS matrices. Only the node id and name mappings and node and
+edge properties are stored in the database.
 
 ## Creating Graphs
 
