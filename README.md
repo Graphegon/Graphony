@@ -45,12 +45,11 @@ connect it to a database:
 <!--phmdoctest-setup-->
 ```python3
 import pprint
+import postgresql
 from graphony import Graph, Node
-from graphony.tests import setup
-
 p = lambda r: pprint.pprint(sorted(list(r)))
-
-db_conn_string = setup()
+pgdata, db_conn_string = postgresql.setup()
+postgresql.psql(f'-d "{db_conn_string}" -f dbinit/01.sql -f dbinit/02.sql')
 G = Graph(db_conn_string)
 ```
 
@@ -261,6 +260,5 @@ Inspecting G shows that it has three columns and six edges:
 
 <!--phmdoctest-teardown-->
 ```python3
-from graphony.tests import teardown
-teardown()
+postgresql.teardown(pgdata)
 ```
