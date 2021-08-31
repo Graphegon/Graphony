@@ -20,7 +20,7 @@ holds edges one of two forms, an [adjancency
 matrix](https://en.wikipedia.org/wiki/Adjacency_matrix) which can
 hold a simple graph with directed or undirected 1-to-1 edges.
 
-![An adjacency matrix](./docs/Incidence.png)
+![An adjacency matrix](./docs/Adjacency.png)
 
 Or two [incidence
 matrices](https://en.wikipedia.org/wiki/Incidence_matrix), which can
