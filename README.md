@@ -1,7 +1,22 @@
-# Graphony Hypergraphs
+# Graphony: Hypersparse Hypergraphs
 
 Graphony is a Python library for doing high-performance graph analysis
-using the GraphBLAS over sparse and hypersparse data sets.
+using the GraphBLAS over sparse and hypersparse data sets.  Graphs can
+be:
+
+  - [Simple](https://en.wikipedia.org/wiki/Graph_(discrete_mathematics)#Graph):
+    an edge connects one source to one destination.
+
+  - [Hypergraph](https://en.wikipedia.org/wiki/Hypergraph): a graph
+    with at lest one *hyperedge* connecting multiple source nodes to
+    multiple destinations.
+
+  - [Multigraph](https://en.wikipedia.org/wiki/Multigraph): multiple
+    edges can exist between a source and destination.
+
+  - [Property
+    Graph](http://graphdatamodeling.com/Graph%20Data%20Modeling/GraphDataModeling/page/PropertyGraphs.html):
+    Nodes and and Edges can have arbitrary JSON properties.
 
 Graphony uses
 [pygraphblas](https://graphegon.github.io/pygraphblas/pygraphblas/index.html)
@@ -14,23 +29,26 @@ manage symbolic names and properties for graphs, nodes, relations and
 edges, and can be used to easily construct, save and manage data in a
 simple project directory format.
 
-A graph is set of nodes connected by edges.  Edges are typed and
-group into named collections called *relations*.  Each relation
-holds edges one of two forms, an [adjancency
-matrix](https://en.wikipedia.org/wiki/Adjacency_matrix) which can
-hold a simple graph with directed or undirected 1-to-1 edges.
+# Introduction
+
+A graph is set of nodes connected by edges.  Edges are typed and group
+into named collections called *relations*.  Each relation holds edges
+in one of two forms, an [adjancency
+matrix](https://en.wikipedia.org/wiki/Adjacency_matrix) which can hold
+a simple graph with directed or undirected 1-to-1 edges:
 
 ![An adjacency matrix](./docs/Adjacency.png)
 
-Or two [incidence
+Or a graph can be stored by two [incidence
 matrices](https://en.wikipedia.org/wiki/Incidence_matrix), which can
-hold multigraphs and hypergraphs where node and edge relationships can
-be many-to-many.  In either case the edge weights can be any of the
-standard GraphBLAS types, or a User Defined Type.
+hold multigraphs and hypergraphs where multiple edges can connect the
+same nodes, and multiple nodes can connect the same edges.  In either
+case the edge weights can be any of the standard GraphBLAS types, or a
+User Defined Type.
 
 ![An incidence matrix](./docs/Incidence.png)
 
-It's usually very helpful to be able to project a pair of incidence
+It's usually helpful to be able to project a pair of incidence
 matrices to an adjacency matrix using matrix multiplication.  This
 "collapses" a hypergraph into a regular directed graph with simple
 edges:
@@ -69,22 +87,6 @@ Graphony consists of four concepts:
   - Graph: Top level object that contains all graph data in
     sub-graphs called *relations*.
 
-    Graphs can be any combination of:
-
-    - [Simple](https://en.wikipedia.org/wiki/Graph_(discrete_mathematics)#Graph):
-      an edge connects one source to one destination.
-
-    - [Hypergraph](https://en.wikipedia.org/wiki/Hypergraph): a graph
-      with at lest one *hyperedge* connecting multiple source nodes to
-      multiple destinations.
-
-    - [Multigraph](https://en.wikipedia.org/wiki/Multigraph): multiple
-      edges can exist between a source and destination.
-
-    - [Property
-      Graph](http://graphdatamodeling.com/Graph%20Data%20Modeling/GraphDataModeling/page/PropertyGraphs.html):
-      Nodes and and Edges can have arbitrary JSON properties.
-
   - Relation: A named, typed sub-graph that holds edges.  A
     relation consists of two GraphBLAS [Incidence
     Matrices](https://en.wikipedia.org/wiki/Incidence_matrix) that can
@@ -100,12 +102,10 @@ Graphony consists of four concepts:
 ## Accumulating Edges
 
 Relation tuples can be added directly into the Graph with the `+=`
-method.  In their simplest form, a relation is a Python tuple with
-3 elements, a relation name, a source name, and a destination
-name:
+method.  In their simplest form, a relation is a Python tuple with 3
+elements, a relation name, a source name, and a destination name:
 
-Before you can add an edge to a relation, it must be declared
-first.
+Before you can add an edge to a relation, it must be declared first.
 
 ```python3
 >>> G.relation('friend')
