@@ -154,11 +154,9 @@ To create edges of a certain type, 4 elements can be provided:
 >>> from pygraphblas.gviz import draw_graph
 >>> draw_graph(G.friend.A, filename='docs/imgs/G_friend_A')
 <graphviz.dot.Digraph object at ...>
-
+```
 ![G_friend_A.png](docs/imgs/G_friend_A.png)
 
-
-```
 
 ## Graph Querying
 

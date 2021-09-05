@@ -21,7 +21,7 @@ def _phm_setup_doctest_teardown(doctest_namespace, managenamespace):
     for k, v in additions.items():
         doctest_namespace[k] = v
     yield
-    # teardown code line 281.
+    # teardown code line 279.
     postgresql.teardown(pgdata)
 
     managenamespace(operation="clear")
@@ -84,14 +84,10 @@ def session_00006_line_151():
     >>> from pygraphblas.gviz import draw_graph
     >>> draw_graph(G.friend.A, filename='docs/imgs/G_friend_A')
     <graphviz.dot.Digraph object at ...>
-
-    ![G_friend_A.png](docs/imgs/G_friend_A.png)
-
-
     """
 
 
-def session_00007_line_171():
+def session_00007_line_169():
     r"""
     >>> p(G())
     [(friend, bob, alice, True),
@@ -103,21 +99,21 @@ def session_00007_line_171():
     """
 
 
-def session_00008_line_183():
+def session_00008_line_181():
     r"""
     >>> p(G(source='bob'))
     [(friend, bob, alice, True), (coworker, bob, jane, True)]
     """
 
 
-def session_00009_line_190():
+def session_00009_line_188():
     r"""
     >>> p(G(relation='coworker'))
     [(coworker, bob, jane, True), (coworker, alice, jane, True)]
     """
 
 
-def session_00010_line_197():
+def session_00010_line_195():
     r"""
     >>> p(G(destination='jane'))
     [(friend, alice, jane, True),
@@ -129,7 +125,7 @@ def session_00010_line_197():
     """
 
 
-def session_00011_line_210():
+def session_00011_line_208():
     r"""
     >>> p(G)
     [(friend, bob, alice, True),
@@ -141,7 +137,7 @@ def session_00011_line_210():
     """
 
 
-def session_00012_line_223():
+def session_00012_line_221():
     r"""
     >>> G.friend
     <Adjacency friend BOOL:2>
@@ -151,14 +147,14 @@ def session_00012_line_223():
     """
 
 
-def session_00013_line_233():
+def session_00013_line_231():
     r"""
     >>> p(list(G.friend))
     [(friend, bob, alice, True), (friend, alice, jane, True)]
     """
 
 
-def session_00014_line_259():
+def session_00014_line_257():
     r"""
     >>> G.relation('karate')
     >>> G += G.sql(
@@ -167,14 +163,14 @@ def session_00014_line_259():
     """
 
 
-def session_00015_line_269():
+def session_00015_line_267():
     r"""
     >>> len(G.karate)
     78
     """
 
 
-def session_00016_line_275():
+def session_00016_line_273():
     r"""
     >>> G
     <Graph [friend, coworker, distance, karate]: 84>
