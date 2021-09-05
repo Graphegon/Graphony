@@ -37,7 +37,7 @@ in one of two forms, an [adjancency
 matrix](https://en.wikipedia.org/wiki/Adjacency_matrix) which can hold
 a simple graph with directed or undirected 1-to-1 edges:
 
-![An adjacency matrix](./docs/Adjacency.png)
+![An adjacency matrix](./docs/imgs/Adjacency.png)
 
 Or a graph can be stored by two [incidence
 matrices](https://en.wikipedia.org/wiki/Incidence_matrix), which can
@@ -46,14 +46,14 @@ same nodes, and multiple nodes can connect the same edges.  In either
 case the edge weights can be any of the standard GraphBLAS types, or a
 User Defined Type.
 
-![An incidence matrix](./docs/Incidence.png)
+![An incidence matrix](./docs/imgs/Incidence.png)
 
 It's usually helpful to be able to project a pair of incidence
 matrices to an adjacency matrix using matrix multiplication.  This
 "collapses" a hypergraph into a regular directed graph with simple
 edges:
 
-![Projecting An incidence matrix to adjacency](./docs/Projection.png)
+![Projecting An incidence matrix to adjacency](./docs/imgs/Projection.png)
 
 Interally The GraphBLAS works row and column position indexes, which
 are a 60-bit integer key, so one of Graphony's key tasks is keeping
@@ -151,6 +151,13 @@ To create edges of a certain type, 4 elements can be provided:
 >>> G.relation('distance', int)
 >>> G += [('distance', 'chicago', 'seattle', 422),
 ...       ('distance', 'seattle', 'portland', 42)]
+>>> from pygraphblas.gviz import draw_graph
+>>> draw_graph(G.friend.A, filename='docs/imgs/G_friend_A')
+<graphviz.dot.Digraph object at ...>
+
+![G_friend_A.png](docs/imgs/G_friend_A.png)
+
+
 ```
 
 ## Graph Querying

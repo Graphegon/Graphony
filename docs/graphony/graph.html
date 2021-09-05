@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
 <title>graphony.graph API documentation</title>
-<meta name="description" content="" />
+<meta name="description" content="Graph objects" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}h1.header,h2.header,h3.header,h4.header,h5.header,h6.header{text-align:center}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}.caret{cursor:pointer;user-select:none}.caret::before{content:"\25B6";color:black;display:inline-block;margin-right:10px}.caret-down::before{transform:rotate(90deg)}.nested{display:none}.active{display:block}</style>
@@ -22,224 +22,48 @@
 <h1 class="title"><code>graphony.graph</code></h1>
 </header>
 <section id="section-intro">
+<p>Graph objects</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">from typing import NamedTuple
-from operator import attrgetter
+<pre><code class="python">&#34;&#34;&#34;
+Graph objects
+&#34;&#34;&#34;
+import csv
 from functools import lru_cache
-import psycopg2 as pg
 from pickle import dumps, loads
 
-from .util import lazy, query
+import psycopg2 as pg
 
-from pygraphblas import Matrix, Vector, BOOL, INT64
-from pygraphblas.base import NoValue
+from .util import query
+from .relation import Relation
+from .node import Node
 
 
 class Graph:
-    &#34;&#34;&#34;# Hypersparse Multi-property Hypergraphs
-
-    A graph is set of nodes connected by edges.  Edges are typed and
-    group into named collections called *relations*.  Each relation
-    holds edges one of two forms, an [adjancency
-    matrix](https://en.wikipedia.org/wiki/Adjacency_matrix) which can
-    hold a simple graph with directed or undirected 1-to-1 edges, or
-    two [incidence
-    matrices](https://en.wikipedia.org/wiki/Incidence_matrix), which
-    can hold multigraphs and hypergraphs where node and edge
-    relationships can be many-to-many.  In either case the edge
-    weights can be any of the standard GraphBLAS types, or a User
-    Defined Type.
-
-    Interally The GraphBLAS works numerically, nodes are idenified by
-    a 60-bit integer key, so one of Graphony&#39;s key tasks is keeping
-    track of node ids and the names they map to.  These mappings are
-    stored in PostgreSQL.  It&#39;s important to note that the graph
-    structure itself is not stored in PostgreSQL instead the structure
-    is stored in GraphBLAS matrices. Only the node id and name
-    mappings and node and edge properties are stored in the database.
-
-    ## Creating Graphs
-
-    To demonstrate, first let&#39;s create a helper function `p()` that
-    will iterate results into a list and &#34;pretty print&#34; them.  This
-    isn&#39;t necessary to use Graphony, but is only to help format and
-    verify the output of this documentation:
-
-    &gt;&gt;&gt; import pprint
-    &gt;&gt;&gt; p = lambda r: pprint.pprint(sorted(list(r)))
-
-    Now construct a graph that is connected to a database.
-
-    &gt;&gt;&gt; db = &#39;postgres://postgres:postgres@localhost:5433/graphony&#39;
-    &gt;&gt;&gt; G = Graph(db)
-
-    ## Accumulating Edges
-
-    Relation tuples can be added directly into the Graph with the `+=`
-    method.  In their simplest form, a relation is a Python tuple with
-    3 elements, a relation name, a source name, and a destination
-    name:
-
-    Before you can add an edge to a relation, it must be declared
-    first.
-
-    &gt;&gt;&gt; G.relation(&#39;friend&#39;)
-
-    Now edges in that relation can be added to the graph:
-
-    &gt;&gt;&gt; G += (&#39;friend&#39;, &#39;bob&#39;, &#39;alice&#39;)
-
-    Strings like `&#39;bob&#39;` and `&#39;alice&#39;` as edge endpoints create new
-    graph nodes automatically.  You can also create a node explicity
-    and provide properties for that node as well.
-
-    &gt;&gt;&gt; jane = Node(G, &#39;jane&#39;, favorite_color=&#39;blue&#39;)
-    &gt;&gt;&gt; G += (&#39;friend&#39;, &#39;alice&#39;, jane)
-
-    This adds two edges to the `friend` relation, one from bob to
-    alice and the other from alice to jane.
-
-    &gt;&gt;&gt; p(G)
-    [(friend, bob, alice, True), (friend, alice, jane, True)]
-
-    An iterator of relation tuples can also be provided:
-
-    &gt;&gt;&gt; G.relation(&#39;coworker&#39;, incidence=True)
-    &gt;&gt;&gt; G += [(&#39;coworker&#39;, &#39;bob&#39;, &#39;jane&#39;), (&#39;coworker&#39;, &#39;alice&#39;, &#39;jane&#39;)]
-
-    As shown above, tuples with 3 elements (triples), are stored as
-    boolean edges whose weights are always `True` and therefore can be
-    ommited.
-
-    To create edges of a certain type, 4 elements can be provided:
-
-    &gt;&gt;&gt; G.relation(&#39;distance&#39;, int)
-    &gt;&gt;&gt; G += [(&#39;distance&#39;, &#39;chicago&#39;, &#39;seattle&#39;, 422),
-    ...       (&#39;distance&#39;, &#39;seattle&#39;, &#39;portland&#39;, 42)]
-
-    ## Graph Querying
-
-    Inspecting G shows that it has three columns and six edges:
-
-    &gt;&gt;&gt; G
-    &lt;Graph [friend, coworker, distance]: 6&gt;
-
-    The graph can then be called like `G(...)` to examine it.  A query
-    consists of three optional arguments for `relation`, &#39;source&#39; and
-    `destination`.  The default value for all three is None, which
-    acts as a wildcard to matches all values.
-
-    &gt;&gt;&gt; p(G())
-    [(friend, bob, alice, True),
-     (friend, alice, jane, True),
-     (coworker, bob, jane, True),
-     (coworker, alice, jane, True),
-     (distance, chicago, seattle, 422),
-     (distance, seattle, portland, 42)]
-
-    Only print relations where `bob` is the src:
-
-    &gt;&gt;&gt; p(G(source=&#39;bob&#39;))
-    [(friend, bob, alice, True), (coworker, bob, jane, True)]
-
-    Only print relations where `coworker` is the relation:
-
-    &gt;&gt;&gt; p(G(relation=&#39;coworker&#39;))
-    [(coworker, bob, jane, True), (coworker, alice, jane, True)]
-
-    Only print relations where `jane` is the dest:
-
-    &gt;&gt;&gt; p(G(destination=&#39;jane&#39;))
-    [(friend, alice, jane, True),
-     (coworker, bob, jane, True),
-     (coworker, alice, jane, True)]
-
-    &gt;&gt;&gt; p(G(source=&#39;bob&#39;, relation=&#39;coworker&#39;, destination=&#39;jane&#39;))
-    [(coworker, bob, jane, True)]
-
-    The entire graph can also be iterated directly.  This is the same
-    as `G()` with no arguments:
-
-    &gt;&gt;&gt; p(G)
-    [(friend, bob, alice, True),
-     (friend, alice, jane, True),
-     (coworker, bob, jane, True),
-     (coworker, alice, jane, True),
-     (distance, chicago, seattle, 422),
-     (distance, seattle, portland, 42)]
-
-    Edges can be tested to see if they are contained in the Graph:
-
-    Relations are accessible as attributes of the graph:
-
-    &gt;&gt;&gt; G.friend
-    &lt;Adjacency friend BOOL:2&gt;
-
-    &gt;&gt;&gt; G.coworker
-    &lt;Incidence coworker BOOL:2&gt;
-
-    Relations can be iterated directly:
-
-    &gt;&gt;&gt; p(list(G.friend))
-    [(friend, bob, alice, True), (friend, alice, jane, True)]
-
-    ## Graph Algorithms
-
-    Graphony uses The GraphBLAS API to store graphs and runs graph
-    algorithms by doing parallel sparse matrix multiplication using
-    the SuiteSparse:GraphBLAS library.
-
-    Matrix multiplication is a very power, but rather abstract
-    approach to writing graph algorithms, and it can be tricky to
-    writem common algorithms optimially form scratch, so Graphony
-    contains some common graph algorithms which can also act as
-    starting points for custom algorithms:
-
-    &gt;&gt;&gt;
-
-    ## Query Graphs from SQL
-
-    Any tuple producing iterator can be used to construct Graphs.
-    Graphony offers a shorthand helper for this.  Any query that
-    produces 3 or 4 columns can be used to produce edges into the
-    graph.
-
-    &gt;&gt;&gt; G.relation(&#39;karate&#39;)
-    &gt;&gt;&gt; G += G.sql(
-    ...  &#34;select &#39;karate&#39;, &#39;karate_&#39; || s_id, &#39;karate_&#39; || d_id &#34;
-    ...  &#34;from graphony.karate&#34;)
-
-    All the edges are in the karate relation, as defined in the sql
-    query above:
-
-    &gt;&gt;&gt; len(G.karate)
-    78
-
-    &#34;&#34;&#34;
+    &#34;&#34;&#34;Graph objects&#34;&#34;&#34;
 
     _LRU_MAXSIZE = None
 
-    def __init__(self, dsn, relations=None, max_cache_size=None):
+    def __init__(self, dsn, relations=None):
         self.graph = self
         self._conn = pg.connect(dsn)
         if relations is None:
             relations = {}
             with self._conn.cursor() as c:
-                c.execute(&#34;select id, r_name, r_type from graphony.relation&#34;)
+                c.execute(&#34;select id, name, pytype from graphony.relation&#34;)
                 for r in c.fetchall():
                     relations[r[0]] = Relation(self, r[0], r[1], loads(r[2]))
-        self._relations = relations
+        self.relations = relations
 
     @lru_cache(maxsize=_LRU_MAXSIZE)
     @query
     def _upsert_node(self, curs):
         &#34;&#34;&#34;
-        INSERT INTO graphony.node (n_name)
-        VALUES (%s)
-        ON CONFLICT (n_name) DO UPDATE SET n_name = EXCLUDED.n_name
+        INSERT INTO graphony.node (name, props)
+        VALUES (%s, %s)
+        ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name
         RETURNING id
         &#34;&#34;&#34;
 
@@ -247,23 +71,23 @@ class Graph:
     @query
     def _get_node_id(self, curs):
         &#34;&#34;&#34;
-        SELECT id FROM graphony.node where n_name = %s
+        SELECT id FROM graphony.node where name = %s
         &#34;&#34;&#34;
 
     @lru_cache(maxsize=_LRU_MAXSIZE)
     @query
     def _get_node_name(self, curs):
         &#34;&#34;&#34;
-        SELECT n_name FROM graphony.node where id = %s
+        SELECT name FROM graphony.node where id = %s
         &#34;&#34;&#34;
 
     @lru_cache(maxsize=_LRU_MAXSIZE)
     @query
     def _upsert_relation(self, curs):
         &#34;&#34;&#34;
-        INSERT INTO graphony.relation (r_name, r_type)
+        INSERT INTO graphony.relation (name, pytype)
         VALUES (%s, %s)
-        ON CONFLICT (r_name) DO UPDATE SET r_name = EXCLUDED.r_name
+        ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name
         RETURNING id
         &#34;&#34;&#34;
 
@@ -271,28 +95,29 @@ class Graph:
     @query
     def _get_relation_id(self, curs):
         &#34;&#34;&#34;
-        SELECT id FROM graphony.relation where r_name = %s
+        SELECT id FROM graphony.relation where name = %s
         &#34;&#34;&#34;
 
     @lru_cache(maxsize=_LRU_MAXSIZE)
     @query
     def _get_relation_name(self, curs):
         &#34;&#34;&#34;
-        SELECT r_name FROM graphony.relation where id = %s
+        SELECT name FROM graphony.relation where id = %s
         &#34;&#34;&#34;
 
     @query
     def _new_edge(self, curs):
         &#34;&#34;&#34;
-        INSERT INTO graphony.edge (e_props) VALUES (null) RETURNING id
+        INSERT INTO graphony.edge (props) VALUES (null) RETURNING id
         &#34;&#34;&#34;
 
-    def sql(self, query):
+    def sql(self, sql_code):
+        &#34;&#34;&#34;Helper method to execute a SQL query and fetch results.&#34;&#34;&#34;
         with self._conn.cursor() as c:
-            c.execute(query)
+            c.execute(sql_code)
             return c.fetchall()
 
-    def add(self, relation, source, destination, weight=True, eid=None):
+    def add(self, relation, source, destination, weight=True):
         &#34;&#34;&#34;Add an edge to the graph with an optional weight.&#34;&#34;&#34;
         if not relation.isidentifier() or relation.startswith(&#34;_&#34;):
             assert NameError(
@@ -310,19 +135,20 @@ class Graph:
 
         rel.add(source, destination, weight)
 
-    def relation(self, name, type=BOOL, incidence=False):
-        rid = self._upsert_relation(name, dumps(type))
-        rel = Relation(self, rid, name, type, incidence)
-        self._relations[rid] = rel
+    def relation(self, name, weight_type=None, incidence=False):
+        &#34;&#34;&#34;Add a new relation&#34;&#34;&#34;
+        rid = self._upsert_relation(name, dumps(weight_type))
+        rel = Relation(self, rid, name, weight_type, incidence)
+        self.relations[rid] = rel
 
     def __getitem__(self, key):
         if isinstance(key, int):
-            id = self._get_node_name(key)
+            n_id = self._get_node_name(key)
         else:
-            id = self._get_node_id(key)
-        if id is None:
+            n_id = self._get_node_id(key)
+        if n_id is None:
             raise KeyError(key)
-        return id
+        return n_id
 
     def __iadd__(self, relation):
         if isinstance(relation, tuple):
@@ -336,10 +162,10 @@ class Graph:
 
     def __len__(self):
         &#34;&#34;&#34;Returns the number of triples in the graph.&#34;&#34;&#34;
-        return sum(map(len, self._relations.values()))
+        return sum(map(len, self.relations.values()))
 
     def __repr__(self):
-        return f&#34;&lt;Graph [{&#39;, &#39;.join([r.name for r in self._relations.values()])}]: {len(self)}&gt;&#34;
+        return f&#34;&lt;Graph [{&#39;, &#39;.join([r.name for r in self.relations.values()])}]: {len(self)}&gt;&#34;
 
     def __iter__(self):
         return self()
@@ -349,7 +175,7 @@ class Graph:
         if source is not None:  # src, ?, ?
             sid = self[source]
             if relation is not None:  # src, relation, ?
-                rel = self._relations[relation]
+                rel = self.relations[relation]
                 if destination is not None:  # src, relation, dest
                     did = self[destination]
                     for _, eid in rel.A[sid]:
@@ -358,9 +184,7 @@ class Graph:
                         return
 
                 else:  # src, relation, None
-                    for _, eid in rel.A[sid]:
-                        rel.B[eid] = Vector.sparse(BOOL, rel.B.nrows)
-                    rel.A[sid] = Vector.sparse(BOOL, rel.A.nrows)
+                    pass
 
             else:  # src, None, ?
                 if destination is not None:  # src, None, dest
@@ -375,7 +199,7 @@ class Graph:
         elif destination is not None:  # None, None, dest
             pass
         else:  # None, None, None
-            for _, rel in self._relations.items():
+            for _, rel in self.relations.items():
                 rel.A.clear()
                 rel.B.clear()
 
@@ -383,7 +207,7 @@ class Graph:
         rid = self._get_relation_id(name)
         if rid is None:
             raise AttributeError(name)
-        return self._relations[rid]
+        return self.relations[rid]
 
     def __call__(self, relation=None, source=None, destination=None):
         &#34;&#34;&#34;Query the graph for matching triples.
@@ -393,12 +217,11 @@ class Graph:
         no values will iterate all edges.
 
         &#34;&#34;&#34;
-        weight = True
         if source is not None:  # source,?,?
             sid = self[source]
             if relation is not None:  # source,relation,?
                 rid = self._get_relation_id(relation)
-                rel = self._relations[rid]
+                rel = self.relations[rid]
 
                 if destination is not None:  # source,relation,destination
                     did = self[destination]
@@ -411,18 +234,18 @@ class Graph:
             else:
                 if destination is not None:  # source,None,destination
                     did = self[destination]
-                    for relation, rel in self._relations.items():
+                    for _, rel in self.relations.items():
                         for edge in rel[sid, did]:
                             yield edge
 
                 else:  # source,None,None
-                    for rid, rel in self._relations.items():
+                    for rid, rel in self.relations.items():
                         for edge in rel[sid, :]:
                             yield edge
 
         elif relation is not None:  # None,relation,?
             rid = self._get_relation_id(relation)
-            rel = self._relations[rid]
+            rel = self.relations[rid]
             if destination is not None:  # None,relation,destination
                 did = self[destination]
                 for edge in rel[:, did]:
@@ -434,150 +257,24 @@ class Graph:
 
         elif destination is not None:  # None,None,destination
             did = self[destination]
-            for rid, rel in self._relations.items():
+            for rid, rel in self.relations.items():
                 for edge in rel[:, did]:
                     yield edge
 
         else:  # None,None,None
-            for rid, rel in self._relations.items():
+            for rid, rel in self.relations.items():
                 for edge in rel:
                     yield edge
 
 
-class Edge(NamedTuple):
-    &#34;&#34;&#34;A hyperedge between graph nodes.&#34;&#34;&#34;
+def read_csv(graph, fname, encoding=&#34;utf8&#34;, **kw):
+    &#34;&#34;&#34;Read a csv file and accuulate it into a graph&#34;&#34;&#34;
 
-    graph: Graph
-    rid: int
-    sid: int
-    did: int
-    weight: object = True
-    eid: int = None
-
-    def __repr__(self):
-        return (
-            f&#34;({self.relation.name}, {self.source}, {self.destination}, {self.weight})&#34;
-        )
-
-    @property
-    def relation(self):
-        return self.graph._relations[self.rid]
-
-    @property
-    def source(self):
-        return Node(self.graph, self.sid)
-
-    @property
-    def destination(self):
-        return Node(self.graph, self.did)
-
-
-class Node:
-
-    __slots__ = (&#34;graph&#34;, &#34;id&#34;, &#34;props&#34;)
-
-    def __init__(self, graph, id, **props):
-        if isinstance(id, str):
-            id = graph._upsert_node(id)
-
-        self.graph = graph
-        self.id = id
-        self.props = props
-
-    @property
-    def name(self):
-        return self.graph._get_node_name(self.id)
-
-    def __repr__(self):
-        return self.name
-
-
-class Relation:
-    def __init__(
-        self,
-        graph,
-        rid,
-        name,
-        weight_type,
-        incidence=False,
-        incident_A_type=BOOL,
-    ):
-        self.graph = graph
-        self.rid = rid
-        self.name = name
-        self.incidence = incidence
-        if incidence:
-            self.A = Matrix.sparse(incident_A_type)
-            self.B = Matrix.sparse(weight_type)
-        else:
-            self.A = Matrix.sparse(weight_type)
-            self.B = None
-
-    def add(self, source, destination, weight, eid=None, A_weight=True):
-        if self.incidence:
-            if eid is None:
-                eid = self.graph._new_edge()
-
-            self.A[source.id, eid] = A_weight
-            self.B[eid, destination.id] = weight
-        else:
-            self.A[source.id, destination.id] = weight
-
-    def __call__(self, semiring=None, *args, **kwargs):
-        if not self.incidence:
-            return self.A
-
-        if semiring is None:
-            semiring = INT64.any_secondi
-        return semiring(self.A, self.B, *args, **kwargs)
-
-    def __iter__(self):
-        if self.incidence:
-            for sid, did, eid in self(INT64.any_secondi):
-                w = self.B[eid]
-                for _, weight in w:
-                    yield Edge(self.graph, self.rid, sid, did, weight, eid)
-        else:
-            for sid, did, weight in self.A:
-                yield Edge(self.graph, self.rid, sid, did, weight)
-
-    def __len__(self):
-        return self.B.nvals if self.incidence else self.A.nvals
-
-    def __repr__(self):
-        if self.incidence:
-            A = self.B
-            type = &#34;Incidence&#34;
-        else:
-            A = self.A
-            type = &#34;Adjacency&#34;
-        return f&#34;&lt;{type} {self.name} {A.type.__name__}:{A.nvals}&gt;&#34;
-
-    def __getitem__(self, key):
-        sid, did = key
-        if self.incidence:
-            A = self.A.any_second(self.B)
-        else:
-            A = self.A
-
-        if isinstance(sid, slice):
-            for sid, weight in A[sid, did]:
-                yield Edge(self.graph, self.rid, sid, did, weight)
-        elif isinstance(did, slice):
-            for did, weight in A[sid, did]:
-                yield Edge(self.graph, self.rid, sid, did, weight)
-        else:
-            yield Edge(self.graph, self.rid, sid, did, A[sid, did])
-
-
-def read_csv(self, fname, **kw):
-    import csv
-
-    with open(fname) as fd:
+    with open(fname, encoding=encoding) as fd:
         rd = csv.reader(fd, **kw)
         for row in rd:
             if row:
-                self += tuple(row)</code></pre>
+                graph += tuple(row)</code></pre>
 </details>
 </section>
 <section>
@@ -585,378 +282,37 @@ def read_csv(self, fname, **kw):
 <dl class="nested active">
 <dt id="graphony.graph.Graph"><code class="flex name class">
 <span>class <span class="ident">Graph</span></span>
-<span>(</span><span>dsn, relations=None, max_cache_size=None)</span>
+<span>(</span><span>dsn, relations=None)</span>
 </code></dt>
 <dd>
-<div class="desc"><h1 id="hypersparse-multi-property-hypergraphs">Hypersparse Multi-property Hypergraphs</h1>
-<p>A graph is set of nodes connected by edges.
-Edges are typed and
-group into named collections called <em>relations</em>.
-Each relation
-holds edges one of two forms, an <a href="https://en.wikipedia.org/wiki/Adjacency_matrix">adjancency
-matrix</a> which can
-hold a simple graph with directed or undirected 1-to-1 edges, or
-two <a href="https://en.wikipedia.org/wiki/Incidence_matrix">incidence
-matrices</a>, which
-can hold multigraphs and hypergraphs where node and edge
-relationships can be many-to-many.
-In either case the edge
-weights can be any of the standard GraphBLAS types, or a User
-Defined Type.</p>
-<p>Interally The GraphBLAS works numerically, nodes are idenified by
-a 60-bit integer key, so one of Graphony's key tasks is keeping
-track of node ids and the names they map to.
-These mappings are
-stored in PostgreSQL.
-It's important to note that the graph
-structure itself is not stored in PostgreSQL instead the structure
-is stored in GraphBLAS matrices. Only the node id and name
-mappings and node and edge properties are stored in the database.</p>
-<h2 id="creating-graphs">Creating Graphs</h2>
-<p>To demonstrate, first let's create a helper function <code>p()</code> that
-will iterate results into a list and "pretty print" them.
-This
-isn't necessary to use Graphony, but is only to help format and
-verify the output of this documentation:</p>
-<pre><code class="language-python-repl">&gt;&gt;&gt; import pprint
-&gt;&gt;&gt; p = lambda r: pprint.pprint(sorted(list(r)))
-</code></pre>
-<p>Now construct a graph that is connected to a database.</p>
-<pre><code class="language-python-repl">&gt;&gt;&gt; db = 'postgres://postgres:postgres@localhost:5433/graphony'
-&gt;&gt;&gt; G = Graph(db)
-</code></pre>
-<h2 id="accumulating-edges">Accumulating Edges</h2>
-<p>Relation tuples can be added directly into the Graph with the <code>+=</code>
-method.
-In their simplest form, a relation is a Python tuple with
-3 elements, a relation name, a source name, and a destination
-name:</p>
-<p>Before you can add an edge to a relation, it must be declared
-first.</p>
-<pre><code class="language-python-repl">&gt;&gt;&gt; G.relation('friend')
-</code></pre>
-<p>Now edges in that relation can be added to the graph:</p>
-<pre><code class="language-python-repl">&gt;&gt;&gt; G += ('friend', 'bob', 'alice')
-</code></pre>
-<p>Strings like <code>'bob'</code> and <code>'alice'</code> as edge endpoints create new
-graph nodes automatically.
-You can also create a node explicity
-and provide properties for that node as well.</p>
-<pre><code class="language-python-repl">&gt;&gt;&gt; jane = Node(G, 'jane', favorite_color='blue')
-&gt;&gt;&gt; G += ('friend', 'alice', jane)
-</code></pre>
-<p>This adds two edges to the <code>friend</code> relation, one from bob to
-alice and the other from alice to jane.</p>
-<pre><code class="language-python-repl">&gt;&gt;&gt; p(G)
-[(friend, bob, alice, True), (friend, alice, jane, True)]
-</code></pre>
-<p>An iterator of relation tuples can also be provided:</p>
-<pre><code class="language-python-repl">&gt;&gt;&gt; G.relation('coworker', incidence=True)
-&gt;&gt;&gt; G += [('coworker', 'bob', 'jane'), ('coworker', 'alice', 'jane')]
-</code></pre>
-<p>As shown above, tuples with 3 elements (triples), are stored as
-boolean edges whose weights are always <code>True</code> and therefore can be
-ommited.</p>
-<p>To create edges of a certain type, 4 elements can be provided:</p>
-<pre><code class="language-python-repl">&gt;&gt;&gt; G.relation('distance', int)
-&gt;&gt;&gt; G += [('distance', 'chicago', 'seattle', 422),
-...       ('distance', 'seattle', 'portland', 42)]
-</code></pre>
-<h2 id="graph-querying">Graph Querying</h2>
-<p>Inspecting G shows that it has three columns and six edges:</p>
-<pre><code class="language-python-repl">&gt;&gt;&gt; G
-&lt;Graph [friend, coworker, distance]: 6&gt;
-</code></pre>
-<p>The graph can then be called like <code>G(&hellip;)</code> to examine it.
-A query
-consists of three optional arguments for <code>relation</code>, 'source' and
-<code>destination</code>.
-The default value for all three is None, which
-acts as a wildcard to matches all values.</p>
-<pre><code class="language-python-repl">&gt;&gt;&gt; p(G())
-[(friend, bob, alice, True),
- (friend, alice, jane, True),
- (coworker, bob, jane, True),
- (coworker, alice, jane, True),
- (distance, chicago, seattle, 422),
- (distance, seattle, portland, 42)]
-</code></pre>
-<p>Only print relations where <code>bob</code> is the src:</p>
-<pre><code class="language-python-repl">&gt;&gt;&gt; p(G(source='bob'))
-[(friend, bob, alice, True), (coworker, bob, jane, True)]
-</code></pre>
-<p>Only print relations where <code>coworker</code> is the relation:</p>
-<pre><code class="language-python-repl">&gt;&gt;&gt; p(G(relation='coworker'))
-[(coworker, bob, jane, True), (coworker, alice, jane, True)]
-</code></pre>
-<p>Only print relations where <code>jane</code> is the dest:</p>
-<pre><code class="language-python-repl">&gt;&gt;&gt; p(G(destination='jane'))
-[(friend, alice, jane, True),
- (coworker, bob, jane, True),
- (coworker, alice, jane, True)]
-</code></pre>
-<pre><code class="language-python-repl">&gt;&gt;&gt; p(G(source='bob', relation='coworker', destination='jane'))
-[(coworker, bob, jane, True)]
-</code></pre>
-<p>The entire graph can also be iterated directly.
-This is the same
-as <code>G()</code> with no arguments:</p>
-<pre><code class="language-python-repl">&gt;&gt;&gt; p(G)
-[(friend, bob, alice, True),
- (friend, alice, jane, True),
- (coworker, bob, jane, True),
- (coworker, alice, jane, True),
- (distance, chicago, seattle, 422),
- (distance, seattle, portland, 42)]
-</code></pre>
-<p>Edges can be tested to see if they are contained in the Graph:</p>
-<p>Relations are accessible as attributes of the graph:</p>
-<pre><code class="language-python-repl">&gt;&gt;&gt; G.friend
-&lt;Adjacency friend BOOL:2&gt;
-</code></pre>
-<pre><code class="language-python-repl">&gt;&gt;&gt; G.coworker
-&lt;Incidence coworker BOOL:2&gt;
-</code></pre>
-<p>Relations can be iterated directly:</p>
-<pre><code class="language-python-repl">&gt;&gt;&gt; p(list(G.friend))
-[(friend, bob, alice, True), (friend, alice, jane, True)]
-</code></pre>
-<h2 id="graph-algorithms">Graph Algorithms</h2>
-<p>Graphony uses The GraphBLAS API to store graphs and runs graph
-algorithms by doing parallel sparse matrix multiplication using
-the SuiteSparse:GraphBLAS library.</p>
-<p>Matrix multiplication is a very power, but rather abstract
-approach to writing graph algorithms, and it can be tricky to
-writem common algorithms optimially form scratch, so Graphony
-contains some common graph algorithms which can also act as
-starting points for custom algorithms:</p>
-<blockquote>
-<blockquote>
-<blockquote></blockquote>
-</blockquote>
-</blockquote>
-<h2 id="query-graphs-from-sql">Query Graphs from SQL</h2>
-<p>Any tuple producing iterator can be used to construct Graphs.
-Graphony offers a shorthand helper for this.
-Any query that
-produces 3 or 4 columns can be used to produce edges into the
-graph.</p>
-<pre><code class="language-python-repl">&gt;&gt;&gt; G.relation('karate')
-&gt;&gt;&gt; G += G.sql(
-...  &quot;select 'karate', 'karate_' || s_id, 'karate_' || d_id &quot;
-...  &quot;from graphony.karate&quot;)
-</code></pre>
-<p>All the edges are in the karate relation, as defined in the sql
-query above:</p>
-<pre><code class="language-python-repl">&gt;&gt;&gt; len(G.karate)
-78
-</code></pre></div>
+<div class="desc"><p>Graph objects</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class Graph:
-    &#34;&#34;&#34;# Hypersparse Multi-property Hypergraphs
-
-    A graph is set of nodes connected by edges.  Edges are typed and
-    group into named collections called *relations*.  Each relation
-    holds edges one of two forms, an [adjancency
-    matrix](https://en.wikipedia.org/wiki/Adjacency_matrix) which can
-    hold a simple graph with directed or undirected 1-to-1 edges, or
-    two [incidence
-    matrices](https://en.wikipedia.org/wiki/Incidence_matrix), which
-    can hold multigraphs and hypergraphs where node and edge
-    relationships can be many-to-many.  In either case the edge
-    weights can be any of the standard GraphBLAS types, or a User
-    Defined Type.
-
-    Interally The GraphBLAS works numerically, nodes are idenified by
-    a 60-bit integer key, so one of Graphony&#39;s key tasks is keeping
-    track of node ids and the names they map to.  These mappings are
-    stored in PostgreSQL.  It&#39;s important to note that the graph
-    structure itself is not stored in PostgreSQL instead the structure
-    is stored in GraphBLAS matrices. Only the node id and name
-    mappings and node and edge properties are stored in the database.
-
-    ## Creating Graphs
-
-    To demonstrate, first let&#39;s create a helper function `p()` that
-    will iterate results into a list and &#34;pretty print&#34; them.  This
-    isn&#39;t necessary to use Graphony, but is only to help format and
-    verify the output of this documentation:
-
-    &gt;&gt;&gt; import pprint
-    &gt;&gt;&gt; p = lambda r: pprint.pprint(sorted(list(r)))
-
-    Now construct a graph that is connected to a database.
-
-    &gt;&gt;&gt; db = &#39;postgres://postgres:postgres@localhost:5433/graphony&#39;
-    &gt;&gt;&gt; G = Graph(db)
-
-    ## Accumulating Edges
-
-    Relation tuples can be added directly into the Graph with the `+=`
-    method.  In their simplest form, a relation is a Python tuple with
-    3 elements, a relation name, a source name, and a destination
-    name:
-
-    Before you can add an edge to a relation, it must be declared
-    first.
-
-    &gt;&gt;&gt; G.relation(&#39;friend&#39;)
-
-    Now edges in that relation can be added to the graph:
-
-    &gt;&gt;&gt; G += (&#39;friend&#39;, &#39;bob&#39;, &#39;alice&#39;)
-
-    Strings like `&#39;bob&#39;` and `&#39;alice&#39;` as edge endpoints create new
-    graph nodes automatically.  You can also create a node explicity
-    and provide properties for that node as well.
-
-    &gt;&gt;&gt; jane = Node(G, &#39;jane&#39;, favorite_color=&#39;blue&#39;)
-    &gt;&gt;&gt; G += (&#39;friend&#39;, &#39;alice&#39;, jane)
-
-    This adds two edges to the `friend` relation, one from bob to
-    alice and the other from alice to jane.
-
-    &gt;&gt;&gt; p(G)
-    [(friend, bob, alice, True), (friend, alice, jane, True)]
-
-    An iterator of relation tuples can also be provided:
-
-    &gt;&gt;&gt; G.relation(&#39;coworker&#39;, incidence=True)
-    &gt;&gt;&gt; G += [(&#39;coworker&#39;, &#39;bob&#39;, &#39;jane&#39;), (&#39;coworker&#39;, &#39;alice&#39;, &#39;jane&#39;)]
-
-    As shown above, tuples with 3 elements (triples), are stored as
-    boolean edges whose weights are always `True` and therefore can be
-    ommited.
-
-    To create edges of a certain type, 4 elements can be provided:
-
-    &gt;&gt;&gt; G.relation(&#39;distance&#39;, int)
-    &gt;&gt;&gt; G += [(&#39;distance&#39;, &#39;chicago&#39;, &#39;seattle&#39;, 422),
-    ...       (&#39;distance&#39;, &#39;seattle&#39;, &#39;portland&#39;, 42)]
-
-    ## Graph Querying
-
-    Inspecting G shows that it has three columns and six edges:
-
-    &gt;&gt;&gt; G
-    &lt;Graph [friend, coworker, distance]: 6&gt;
-
-    The graph can then be called like `G(...)` to examine it.  A query
-    consists of three optional arguments for `relation`, &#39;source&#39; and
-    `destination`.  The default value for all three is None, which
-    acts as a wildcard to matches all values.
-
-    &gt;&gt;&gt; p(G())
-    [(friend, bob, alice, True),
-     (friend, alice, jane, True),
-     (coworker, bob, jane, True),
-     (coworker, alice, jane, True),
-     (distance, chicago, seattle, 422),
-     (distance, seattle, portland, 42)]
-
-    Only print relations where `bob` is the src:
-
-    &gt;&gt;&gt; p(G(source=&#39;bob&#39;))
-    [(friend, bob, alice, True), (coworker, bob, jane, True)]
-
-    Only print relations where `coworker` is the relation:
-
-    &gt;&gt;&gt; p(G(relation=&#39;coworker&#39;))
-    [(coworker, bob, jane, True), (coworker, alice, jane, True)]
-
-    Only print relations where `jane` is the dest:
-
-    &gt;&gt;&gt; p(G(destination=&#39;jane&#39;))
-    [(friend, alice, jane, True),
-     (coworker, bob, jane, True),
-     (coworker, alice, jane, True)]
-
-    &gt;&gt;&gt; p(G(source=&#39;bob&#39;, relation=&#39;coworker&#39;, destination=&#39;jane&#39;))
-    [(coworker, bob, jane, True)]
-
-    The entire graph can also be iterated directly.  This is the same
-    as `G()` with no arguments:
-
-    &gt;&gt;&gt; p(G)
-    [(friend, bob, alice, True),
-     (friend, alice, jane, True),
-     (coworker, bob, jane, True),
-     (coworker, alice, jane, True),
-     (distance, chicago, seattle, 422),
-     (distance, seattle, portland, 42)]
-
-    Edges can be tested to see if they are contained in the Graph:
-
-    Relations are accessible as attributes of the graph:
-
-    &gt;&gt;&gt; G.friend
-    &lt;Adjacency friend BOOL:2&gt;
-
-    &gt;&gt;&gt; G.coworker
-    &lt;Incidence coworker BOOL:2&gt;
-
-    Relations can be iterated directly:
-
-    &gt;&gt;&gt; p(list(G.friend))
-    [(friend, bob, alice, True), (friend, alice, jane, True)]
-
-    ## Graph Algorithms
-
-    Graphony uses The GraphBLAS API to store graphs and runs graph
-    algorithms by doing parallel sparse matrix multiplication using
-    the SuiteSparse:GraphBLAS library.
-
-    Matrix multiplication is a very power, but rather abstract
-    approach to writing graph algorithms, and it can be tricky to
-    writem common algorithms optimially form scratch, so Graphony
-    contains some common graph algorithms which can also act as
-    starting points for custom algorithms:
-
-    &gt;&gt;&gt;
-
-    ## Query Graphs from SQL
-
-    Any tuple producing iterator can be used to construct Graphs.
-    Graphony offers a shorthand helper for this.  Any query that
-    produces 3 or 4 columns can be used to produce edges into the
-    graph.
-
-    &gt;&gt;&gt; G.relation(&#39;karate&#39;)
-    &gt;&gt;&gt; G += G.sql(
-    ...  &#34;select &#39;karate&#39;, &#39;karate_&#39; || s_id, &#39;karate_&#39; || d_id &#34;
-    ...  &#34;from graphony.karate&#34;)
-
-    All the edges are in the karate relation, as defined in the sql
-    query above:
-
-    &gt;&gt;&gt; len(G.karate)
-    78
-
-    &#34;&#34;&#34;
+    &#34;&#34;&#34;Graph objects&#34;&#34;&#34;
 
     _LRU_MAXSIZE = None
 
-    def __init__(self, dsn, relations=None, max_cache_size=None):
+    def __init__(self, dsn, relations=None):
         self.graph = self
         self._conn = pg.connect(dsn)
         if relations is None:
             relations = {}
             with self._conn.cursor() as c:
-                c.execute(&#34;select id, r_name, r_type from graphony.relation&#34;)
+                c.execute(&#34;select id, name, pytype from graphony.relation&#34;)
                 for r in c.fetchall():
                     relations[r[0]] = Relation(self, r[0], r[1], loads(r[2]))
-        self._relations = relations
+        self.relations = relations
 
     @lru_cache(maxsize=_LRU_MAXSIZE)
     @query
     def _upsert_node(self, curs):
         &#34;&#34;&#34;
-        INSERT INTO graphony.node (n_name)
-        VALUES (%s)
-        ON CONFLICT (n_name) DO UPDATE SET n_name = EXCLUDED.n_name
+        INSERT INTO graphony.node (name, props)
+        VALUES (%s, %s)
+        ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name
         RETURNING id
         &#34;&#34;&#34;
 
@@ -964,23 +320,23 @@ query above:</p>
     @query
     def _get_node_id(self, curs):
         &#34;&#34;&#34;
-        SELECT id FROM graphony.node where n_name = %s
+        SELECT id FROM graphony.node where name = %s
         &#34;&#34;&#34;
 
     @lru_cache(maxsize=_LRU_MAXSIZE)
     @query
     def _get_node_name(self, curs):
         &#34;&#34;&#34;
-        SELECT n_name FROM graphony.node where id = %s
+        SELECT name FROM graphony.node where id = %s
         &#34;&#34;&#34;
 
     @lru_cache(maxsize=_LRU_MAXSIZE)
     @query
     def _upsert_relation(self, curs):
         &#34;&#34;&#34;
-        INSERT INTO graphony.relation (r_name, r_type)
+        INSERT INTO graphony.relation (name, pytype)
         VALUES (%s, %s)
-        ON CONFLICT (r_name) DO UPDATE SET r_name = EXCLUDED.r_name
+        ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name
         RETURNING id
         &#34;&#34;&#34;
 
@@ -988,28 +344,29 @@ query above:</p>
     @query
     def _get_relation_id(self, curs):
         &#34;&#34;&#34;
-        SELECT id FROM graphony.relation where r_name = %s
+        SELECT id FROM graphony.relation where name = %s
         &#34;&#34;&#34;
 
     @lru_cache(maxsize=_LRU_MAXSIZE)
     @query
     def _get_relation_name(self, curs):
         &#34;&#34;&#34;
-        SELECT r_name FROM graphony.relation where id = %s
+        SELECT name FROM graphony.relation where id = %s
         &#34;&#34;&#34;
 
     @query
     def _new_edge(self, curs):
         &#34;&#34;&#34;
-        INSERT INTO graphony.edge (e_props) VALUES (null) RETURNING id
+        INSERT INTO graphony.edge (props) VALUES (null) RETURNING id
         &#34;&#34;&#34;
 
-    def sql(self, query):
+    def sql(self, sql_code):
+        &#34;&#34;&#34;Helper method to execute a SQL query and fetch results.&#34;&#34;&#34;
         with self._conn.cursor() as c:
-            c.execute(query)
+            c.execute(sql_code)
             return c.fetchall()
 
-    def add(self, relation, source, destination, weight=True, eid=None):
+    def add(self, relation, source, destination, weight=True):
         &#34;&#34;&#34;Add an edge to the graph with an optional weight.&#34;&#34;&#34;
         if not relation.isidentifier() or relation.startswith(&#34;_&#34;):
             assert NameError(
@@ -1027,19 +384,20 @@ query above:</p>
 
         rel.add(source, destination, weight)
 
-    def relation(self, name, type=BOOL, incidence=False):
-        rid = self._upsert_relation(name, dumps(type))
-        rel = Relation(self, rid, name, type, incidence)
-        self._relations[rid] = rel
+    def relation(self, name, weight_type=None, incidence=False):
+        &#34;&#34;&#34;Add a new relation&#34;&#34;&#34;
+        rid = self._upsert_relation(name, dumps(weight_type))
+        rel = Relation(self, rid, name, weight_type, incidence)
+        self.relations[rid] = rel
 
     def __getitem__(self, key):
         if isinstance(key, int):
-            id = self._get_node_name(key)
+            n_id = self._get_node_name(key)
         else:
-            id = self._get_node_id(key)
-        if id is None:
+            n_id = self._get_node_id(key)
+        if n_id is None:
             raise KeyError(key)
-        return id
+        return n_id
 
     def __iadd__(self, relation):
         if isinstance(relation, tuple):
@@ -1053,10 +411,10 @@ query above:</p>
 
     def __len__(self):
         &#34;&#34;&#34;Returns the number of triples in the graph.&#34;&#34;&#34;
-        return sum(map(len, self._relations.values()))
+        return sum(map(len, self.relations.values()))
 
     def __repr__(self):
-        return f&#34;&lt;Graph [{&#39;, &#39;.join([r.name for r in self._relations.values()])}]: {len(self)}&gt;&#34;
+        return f&#34;&lt;Graph [{&#39;, &#39;.join([r.name for r in self.relations.values()])}]: {len(self)}&gt;&#34;
 
     def __iter__(self):
         return self()
@@ -1066,7 +424,7 @@ query above:</p>
         if source is not None:  # src, ?, ?
             sid = self[source]
             if relation is not None:  # src, relation, ?
-                rel = self._relations[relation]
+                rel = self.relations[relation]
                 if destination is not None:  # src, relation, dest
                     did = self[destination]
                     for _, eid in rel.A[sid]:
@@ -1075,9 +433,7 @@ query above:</p>
                         return
 
                 else:  # src, relation, None
-                    for _, eid in rel.A[sid]:
-                        rel.B[eid] = Vector.sparse(BOOL, rel.B.nrows)
-                    rel.A[sid] = Vector.sparse(BOOL, rel.A.nrows)
+                    pass
 
             else:  # src, None, ?
                 if destination is not None:  # src, None, dest
@@ -1092,7 +448,7 @@ query above:</p>
         elif destination is not None:  # None, None, dest
             pass
         else:  # None, None, None
-            for _, rel in self._relations.items():
+            for _, rel in self.relations.items():
                 rel.A.clear()
                 rel.B.clear()
 
@@ -1100,7 +456,7 @@ query above:</p>
         rid = self._get_relation_id(name)
         if rid is None:
             raise AttributeError(name)
-        return self._relations[rid]
+        return self.relations[rid]
 
     def __call__(self, relation=None, source=None, destination=None):
         &#34;&#34;&#34;Query the graph for matching triples.
@@ -1110,12 +466,11 @@ query above:</p>
         no values will iterate all edges.
 
         &#34;&#34;&#34;
-        weight = True
         if source is not None:  # source,?,?
             sid = self[source]
             if relation is not None:  # source,relation,?
                 rid = self._get_relation_id(relation)
-                rel = self._relations[rid]
+                rel = self.relations[rid]
 
                 if destination is not None:  # source,relation,destination
                     did = self[destination]
@@ -1128,18 +483,18 @@ query above:</p>
             else:
                 if destination is not None:  # source,None,destination
                     did = self[destination]
-                    for relation, rel in self._relations.items():
+                    for _, rel in self.relations.items():
                         for edge in rel[sid, did]:
                             yield edge
 
                 else:  # source,None,None
-                    for rid, rel in self._relations.items():
+                    for rid, rel in self.relations.items():
                         for edge in rel[sid, :]:
                             yield edge
 
         elif relation is not None:  # None,relation,?
             rid = self._get_relation_id(relation)
-            rel = self._relations[rid]
+            rel = self.relations[rid]
             if destination is not None:  # None,relation,destination
                 did = self[destination]
                 for edge in rel[:, did]:
@@ -1151,34 +506,35 @@ query above:</p>
 
         elif destination is not None:  # None,None,destination
             did = self[destination]
-            for rid, rel in self._relations.items():
+            for rid, rel in self.relations.items():
                 for edge in rel[:, did]:
                     yield edge
 
         else:  # None,None,None
-            for rid, rel in self._relations.items():
+            for rid, rel in self.relations.items():
                 for edge in rel:
                     yield edge</code></pre>
 </details>
 <h3 class="caret">Methods</h3>
 <dl class="nested active">
 <dt id="graphony.graph.Graph.sql"><code class="name flex">
-<span>def <span class="ident">sql</span></span>(<span>self, query)</span>
+<span>def <span class="ident">sql</span></span>(<span>self, sql_code)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Helper method to execute a SQL query and fetch results.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def sql(self, query):
+<pre><code class="python">def sql(self, sql_code):
+    &#34;&#34;&#34;Helper method to execute a SQL query and fetch results.&#34;&#34;&#34;
     with self._conn.cursor() as c:
-        c.execute(query)
+        c.execute(sql_code)
         return c.fetchall()</code></pre>
 </details>
 </dd>
 <dt id="graphony.graph.Graph.add"><code class="name flex">
-<span>def <span class="ident">add</span></span>(<span>self, relation, source, destination, weight=True, eid=None)</span>
+<span>def <span class="ident">add</span></span>(<span>self, relation, source, destination, weight=True)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Add an edge to the graph with an optional weight.</p></div>
@@ -1186,7 +542,7 @@ query above:</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def add(self, relation, source, destination, weight=True, eid=None):
+<pre><code class="python">def add(self, relation, source, destination, weight=True):
     &#34;&#34;&#34;Add an edge to the graph with an optional weight.&#34;&#34;&#34;
     if not relation.isidentifier() or relation.startswith(&#34;_&#34;):
         assert NameError(
@@ -1206,287 +562,19 @@ query above:</p>
 </details>
 </dd>
 <dt id="graphony.graph.Graph.relation"><code class="name flex">
-<span>def <span class="ident">relation</span></span>(<span>self, name, type=pygraphblas.types.BOOL, incidence=False)</span>
+<span>def <span class="ident">relation</span></span>(<span>self, name, weight_type=None, incidence=False)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Add a new relation</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def relation(self, name, type=BOOL, incidence=False):
-    rid = self._upsert_relation(name, dumps(type))
-    rel = Relation(self, rid, name, type, incidence)
-    self._relations[rid] = rel</code></pre>
-</details>
-</dd>
-</dl>
-</dd>
-<dt id="graphony.graph.Edge"><code class="flex name class">
-<span>class <span class="ident">Edge</span></span>
-<span>(</span><span>graph: <a title="graphony.graph.Graph" href="#graphony.graph.Graph">Graph</a>, rid: int, sid: int, did: int, weight: object = True, eid: int = None)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>A hyperedge between graph nodes.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class Edge(NamedTuple):
-    &#34;&#34;&#34;A hyperedge between graph nodes.&#34;&#34;&#34;
-
-    graph: Graph
-    rid: int
-    sid: int
-    did: int
-    weight: object = True
-    eid: int = None
-
-    def __repr__(self):
-        return (
-            f&#34;({self.relation.name}, {self.source}, {self.destination}, {self.weight})&#34;
-        )
-
-    @property
-    def relation(self):
-        return self.graph._relations[self.rid]
-
-    @property
-    def source(self):
-        return Node(self.graph, self.sid)
-
-    @property
-    def destination(self):
-        return Node(self.graph, self.did)</code></pre>
-</details>
-<h3 class="caret">Instance Attributes</h3>
-<dl class="nested active">
-<dt id="graphony.graph.Edge.graph"><code class="name">var <span class="ident">graph</span> : <a title="graphony.graph.Graph" href="#graphony.graph.Graph">Graph</a></code></dt>
-<dd>
-<div class="desc"><p>Alias for field number 0</p></div>
-</dd>
-<dt id="graphony.graph.Edge.rid"><code class="name">var <span class="ident">rid</span> : int</code></dt>
-<dd>
-<div class="desc"><p>Alias for field number 1</p></div>
-</dd>
-<dt id="graphony.graph.Edge.sid"><code class="name">var <span class="ident">sid</span> : int</code></dt>
-<dd>
-<div class="desc"><p>Alias for field number 2</p></div>
-</dd>
-<dt id="graphony.graph.Edge.did"><code class="name">var <span class="ident">did</span> : int</code></dt>
-<dd>
-<div class="desc"><p>Alias for field number 3</p></div>
-</dd>
-<dt id="graphony.graph.Edge.weight"><code class="name">var <span class="ident">weight</span> : object</code></dt>
-<dd>
-<div class="desc"><p>Alias for field number 4</p></div>
-</dd>
-<dt id="graphony.graph.Edge.eid"><code class="name">var <span class="ident">eid</span> : int</code></dt>
-<dd>
-<div class="desc"><p>Alias for field number 5</p></div>
-</dd>
-<dt id="graphony.graph.Edge.relation"><code class="name">var <span class="ident">relation</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@property
-def relation(self):
-    return self.graph._relations[self.rid]</code></pre>
-</details>
-</dd>
-<dt id="graphony.graph.Edge.source"><code class="name">var <span class="ident">source</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@property
-def source(self):
-    return Node(self.graph, self.sid)</code></pre>
-</details>
-</dd>
-<dt id="graphony.graph.Edge.destination"><code class="name">var <span class="ident">destination</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@property
-def destination(self):
-    return Node(self.graph, self.did)</code></pre>
-</details>
-</dd>
-</dl>
-</dd>
-<dt id="graphony.graph.Node"><code class="flex name class">
-<span>class <span class="ident">Node</span></span>
-<span>(</span><span>graph, id, **props)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class Node:
-
-    __slots__ = (&#34;graph&#34;, &#34;id&#34;, &#34;props&#34;)
-
-    def __init__(self, graph, id, **props):
-        if isinstance(id, str):
-            id = graph._upsert_node(id)
-
-        self.graph = graph
-        self.id = id
-        self.props = props
-
-    @property
-    def name(self):
-        return self.graph._get_node_name(self.id)
-
-    def __repr__(self):
-        return self.name</code></pre>
-</details>
-<h3 class="caret">Instance Attributes</h3>
-<dl class="nested active">
-<dt id="graphony.graph.Node.name"><code class="name">var <span class="ident">name</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@property
-def name(self):
-    return self.graph._get_node_name(self.id)</code></pre>
-</details>
-</dd>
-<dt id="graphony.graph.Node.graph"><code class="name">var <span class="ident">graph</span></code></dt>
-<dd>
-<div class="desc"><p>Return an attribute of instance, which is of type owner.</p></div>
-</dd>
-<dt id="graphony.graph.Node.id"><code class="name">var <span class="ident">id</span></code></dt>
-<dd>
-<div class="desc"><p>Return an attribute of instance, which is of type owner.</p></div>
-</dd>
-<dt id="graphony.graph.Node.props"><code class="name">var <span class="ident">props</span></code></dt>
-<dd>
-<div class="desc"><p>Return an attribute of instance, which is of type owner.</p></div>
-</dd>
-</dl>
-</dd>
-<dt id="graphony.graph.Relation"><code class="flex name class">
-<span>class <span class="ident">Relation</span></span>
-<span>(</span><span>graph, rid, name, weight_type, incidence=False, incident_A_type=pygraphblas.types.BOOL)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class Relation:
-    def __init__(
-        self,
-        graph,
-        rid,
-        name,
-        weight_type,
-        incidence=False,
-        incident_A_type=BOOL,
-    ):
-        self.graph = graph
-        self.rid = rid
-        self.name = name
-        self.incidence = incidence
-        if incidence:
-            self.A = Matrix.sparse(incident_A_type)
-            self.B = Matrix.sparse(weight_type)
-        else:
-            self.A = Matrix.sparse(weight_type)
-            self.B = None
-
-    def add(self, source, destination, weight, eid=None, A_weight=True):
-        if self.incidence:
-            if eid is None:
-                eid = self.graph._new_edge()
-
-            self.A[source.id, eid] = A_weight
-            self.B[eid, destination.id] = weight
-        else:
-            self.A[source.id, destination.id] = weight
-
-    def __call__(self, semiring=None, *args, **kwargs):
-        if not self.incidence:
-            return self.A
-
-        if semiring is None:
-            semiring = INT64.any_secondi
-        return semiring(self.A, self.B, *args, **kwargs)
-
-    def __iter__(self):
-        if self.incidence:
-            for sid, did, eid in self(INT64.any_secondi):
-                w = self.B[eid]
-                for _, weight in w:
-                    yield Edge(self.graph, self.rid, sid, did, weight, eid)
-        else:
-            for sid, did, weight in self.A:
-                yield Edge(self.graph, self.rid, sid, did, weight)
-
-    def __len__(self):
-        return self.B.nvals if self.incidence else self.A.nvals
-
-    def __repr__(self):
-        if self.incidence:
-            A = self.B
-            type = &#34;Incidence&#34;
-        else:
-            A = self.A
-            type = &#34;Adjacency&#34;
-        return f&#34;&lt;{type} {self.name} {A.type.__name__}:{A.nvals}&gt;&#34;
-
-    def __getitem__(self, key):
-        sid, did = key
-        if self.incidence:
-            A = self.A.any_second(self.B)
-        else:
-            A = self.A
-
-        if isinstance(sid, slice):
-            for sid, weight in A[sid, did]:
-                yield Edge(self.graph, self.rid, sid, did, weight)
-        elif isinstance(did, slice):
-            for did, weight in A[sid, did]:
-                yield Edge(self.graph, self.rid, sid, did, weight)
-        else:
-            yield Edge(self.graph, self.rid, sid, did, A[sid, did])</code></pre>
-</details>
-<h3 class="caret">Methods</h3>
-<dl class="nested active">
-<dt id="graphony.graph.Relation.add"><code class="name flex">
-<span>def <span class="ident">add</span></span>(<span>self, source, destination, weight, eid=None, A_weight=True)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def add(self, source, destination, weight, eid=None, A_weight=True):
-    if self.incidence:
-        if eid is None:
-            eid = self.graph._new_edge()
-
-        self.A[source.id, eid] = A_weight
-        self.B[eid, destination.id] = weight
-    else:
-        self.A[source.id, destination.id] = weight</code></pre>
+<pre><code class="python">def relation(self, name, weight_type=None, incidence=False):
+    &#34;&#34;&#34;Add a new relation&#34;&#34;&#34;
+    rid = self._upsert_relation(name, dumps(weight_type))
+    rel = Relation(self, rid, name, weight_type, incidence)
+    self.relations[rid] = rel</code></pre>
 </details>
 </dd>
 </dl>
@@ -1501,22 +589,22 @@ def name(self):
 <h2 class="section-title caret" id="header-functions">Functions</h2>
 <dl class="nested active">
 <dt id="graphony.graph.read_csv"><code class="name flex">
-<span>def <span class="ident">read_csv</span></span>(<span>self, fname, **kw)</span>
+<span>def <span class="ident">read_csv</span></span>(<span>graph, fname, encoding='utf8', **kw)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Read a csv file and accuulate it into a graph</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def read_csv(self, fname, **kw):
-    import csv
+<pre><code class="python">def read_csv(graph, fname, encoding=&#34;utf8&#34;, **kw):
+    &#34;&#34;&#34;Read a csv file and accuulate it into a graph&#34;&#34;&#34;
 
-    with open(fname) as fd:
+    with open(fname, encoding=encoding) as fd:
         rd = csv.reader(fd, **kw)
         for row in rd:
             if row:
-                self += tuple(row)</code></pre>
+                graph += tuple(row)</code></pre>
 </details>
 </dd>
 </dl>
@@ -1547,35 +635,6 @@ def name(self):
 <li><code><a title="graphony.graph.Graph.add" href="#graphony.graph.Graph.add">add</a></code></li>
 <li><code><a title="graphony.graph.Graph.relation" href="#graphony.graph.Graph.relation">relation</a></code></li>
 <li><code><a title="graphony.graph.Graph.sql" href="#graphony.graph.Graph.sql">sql</a></code></li>
-</ul>
-</li>
-<li>
-<code class="caret"><a title="graphony.graph.Edge" href="#graphony.graph.Edge">Edge</a></code>
-<ul class="two-column nested ">
-<li><code><a title="graphony.graph.Edge.destination" href="#graphony.graph.Edge.destination">destination</a></code></li>
-<li><code><a title="graphony.graph.Edge.did" href="#graphony.graph.Edge.did">did</a></code></li>
-<li><code><a title="graphony.graph.Edge.eid" href="#graphony.graph.Edge.eid">eid</a></code></li>
-<li><code><a title="graphony.graph.Edge.graph" href="#graphony.graph.Edge.graph">graph</a></code></li>
-<li><code><a title="graphony.graph.Edge.relation" href="#graphony.graph.Edge.relation">relation</a></code></li>
-<li><code><a title="graphony.graph.Edge.rid" href="#graphony.graph.Edge.rid">rid</a></code></li>
-<li><code><a title="graphony.graph.Edge.sid" href="#graphony.graph.Edge.sid">sid</a></code></li>
-<li><code><a title="graphony.graph.Edge.source" href="#graphony.graph.Edge.source">source</a></code></li>
-<li><code><a title="graphony.graph.Edge.weight" href="#graphony.graph.Edge.weight">weight</a></code></li>
-</ul>
-</li>
-<li>
-<code class="caret"><a title="graphony.graph.Node" href="#graphony.graph.Node">Node</a></code>
-<ul class=" nested ">
-<li><code><a title="graphony.graph.Node.graph" href="#graphony.graph.Node.graph">graph</a></code></li>
-<li><code><a title="graphony.graph.Node.id" href="#graphony.graph.Node.id">id</a></code></li>
-<li><code><a title="graphony.graph.Node.name" href="#graphony.graph.Node.name">name</a></code></li>
-<li><code><a title="graphony.graph.Node.props" href="#graphony.graph.Node.props">props</a></code></li>
-</ul>
-</li>
-<li>
-<code class="caret"><a title="graphony.graph.Relation" href="#graphony.graph.Relation">Relation</a></code>
-<ul class=" nested ">
-<li><code><a title="graphony.graph.Relation.add" href="#graphony.graph.Relation.add">add</a></code></li>
 </ul>
 </li>
 </ul>
