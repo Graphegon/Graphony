@@ -167,7 +167,7 @@ To create edges of a certain type, 4 elements can be provided:
 >>> G.coworker += [('bob', 'jane'), ('alice', 'jane')]
 
 >>> G.add_relation('distance', int)
->>> G.distance += [('chicago', 'seattle', 422), ('seattle', 'portland', 42)]
+>>> G.distance += [('bob', 'alice', 422), ('alice', 'jane', 42)]
 >>> G.distance.draw(show_weight=True, filename='docs/imgs/G_distance_1')
 <graphviz.dot.Digraph object at ...>
 ```
@@ -188,15 +188,18 @@ acts as a wildcard to matches all values.
  friend(alice, rick),
  coworker(bob, jane),
  coworker(alice, jane),
- distance(chicago, seattle, 422),
- distance(seattle, portland, 42)]
+ distance(bob, alice, 422),
+ distance(alice, jane, 42)]
 ```
 
 Only print relations where `bob` is the src:
 
 ```python3
 >>> p(G(source='bob'))
-[friend(bob, alice), friend(bob, sal), coworker(bob, jane)]
+[friend(bob, alice),
+ friend(bob, sal),
+ coworker(bob, jane),
+ distance(bob, alice, 422)]
 ```
 
 Only print relations where `coworker` is the relation:
@@ -210,8 +213,10 @@ Only print relations where `jane` is the dest:
 
 ```python3
 >>> p(G(destination='jane'))
-[friend(alice, jane), coworker(bob, jane), coworker(alice, jane)]
-
+[friend(alice, jane),
+ coworker(bob, jane),
+ coworker(alice, jane),
+ distance(alice, jane, 42)]
 >>> p(G(source='bob', relation='coworker', destination='jane'))
 [coworker(bob, jane)]
 ```
