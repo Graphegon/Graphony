@@ -81,7 +81,7 @@ import postgresql
 from pathlib import Path
 from graphony import Graph, Node
 p = lambda r: pprint.pprint(sorted(list(r)))
-pgdata = os.environ.get('RUNNER_TEMP')
+pgdata = os.environ.get('GITHUB_WORKSPACE')
 if pgdata is not None:
     pgdata = Path(pgdata)
 pgdata, db_conn_string = postgresql.setup(pgdata)
