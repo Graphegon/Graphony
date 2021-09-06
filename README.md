@@ -78,9 +78,13 @@ connect it to a database:
 import os
 import pprint
 import postgresql
+from pathlib import Path
 from graphony import Graph, Node
 p = lambda r: pprint.pprint(sorted(list(r)))
-pgdata, db_conn_string = postgresql.setup(os.environ.get('RUNNER_TEMP'))
+pgdata = os.environ.get('RUNNER_TEMP')
+if pgdata is not None:
+    pgdata = Path(pgdata)
+pgdata, db_conn_string = postgresql.setup(pgdata)
 postgresql.psql(f'-d "{db_conn_string}" -f dbinit/01.sql -f dbinit/02.sql')
 G = Graph(db_conn_string)
 ```
