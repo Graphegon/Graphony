@@ -81,12 +81,9 @@ import postgresql
 from pathlib import Path
 from graphony import Graph, Node
 p = lambda r: pprint.pprint(sorted(list(r)))
-pgdata = os.environ.get('GITHUB_WORKSPACE')
-if pgdata is not None:
-    pgdata = Path(pgdata)
-pgdata, db_conn_string = postgresql.setup(pgdata)
-postgresql.psql(f'-d "{db_conn_string}" -f dbinit/01.sql -f dbinit/02.sql')
-G = Graph(db_conn_string)
+pgdata, conn = postgresql.setup()
+postgresql.psql(f'-d "{conn}" -f dbinit/01.sql -f dbinit/02.sql')
+G = Graph(conn)
 ```
 
 Graphony consists of four concepts:
