@@ -2,6 +2,7 @@
 
 
 from psycopg2.extras import Json
+from .util import query
 
 
 class Node:
@@ -9,7 +10,7 @@ class Node:
     Node object.
     """
 
-    __slots__ = ("graph", "n_id", "props")
+    __slots__ = ("graph", "n_id")
 
     def __init__(self, graph, n_id, **props):
         if isinstance(n_id, str):
@@ -17,7 +18,13 @@ class Node:
 
         self.graph = graph
         self.n_id = n_id
-        self.props = props
+
+    @property
+    @query
+    def props(self, curs):
+        """
+        SELECT props from graphony.node where id = {self.n_id}
+        """
 
     @property
     def name(self):

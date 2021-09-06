@@ -118,7 +118,7 @@ Now edges in that relation can be added to the graph:
 
 ```python3
 >>> G += ('friend', 'bob', 'alice')
->>> G.draw('friend', filename='docs/imgs/G_friend_1')
+>>> G.draw('friend', show_weight=False, filename='docs/imgs/G_friend_1')
 <graphviz.dot.Digraph object at ...>
 ```
 ![G_friend_1.png](docs/imgs/G_friend_1.png)
@@ -129,10 +129,15 @@ provide properties for them:
 
 ```python3
 >>> jane = Node(G, 'jane', favorite_color='blue')
+>>> jane.props
+{'favorite_color': 'blue'}
 >>> G += ('friend', 'alice', jane)
+>>> G.draw('friend', show_weight=False, filename='docs/imgs/G_friend_2')
+<graphviz.dot.Digraph object at ...>
 ```
+![G_friend_2.png](docs/imgs/G_friend_2.png)
 
-This adds two edges to the `friend` relation, one from bob to
+Now there are two edges in the `friend` relation, one from bob to
 alice and the other from alice to jane.
 
 ```python3
@@ -143,9 +148,11 @@ alice and the other from alice to jane.
 An iterator of relation tuples can also be provided:
 
 ```python3
->>> G.add_relation('coworker', incidence=True)
->>> G += [('coworker', 'bob', 'jane'), ('coworker', 'alice', 'jane')]
+>>> G += [('friend', 'bob', 'sal'), ('friend', 'alice', 'rick')]
+>>> G.draw('friend', show_weight=False, filename='docs/imgs/G_friend_3')
+<graphviz.dot.Digraph object at ...>
 ```
+![G_friend_3.png](docs/imgs/G_friend_3.png)
 
 As shown above, tuples with 3 elements (triples), are stored as
 boolean edges whose weights are always `True` and therefore can be
@@ -154,14 +161,13 @@ ommited.
 To create edges of a certain type, 4 elements can be provided:
 
 ```python3
+>>> G.add_relation('coworker', incidence=True)
+>>> G += [('coworker', 'bob', 'jane'), ('coworker', 'alice', 'jane')]
+
 >>> G.add_relation('distance', int)
 >>> G += [('distance', 'chicago', 'seattle', 422),
 ...       ('distance', 'seattle', 'portland', 42)]
->>> G.draw('friend', filename='docs/imgs/G_friend_2')
-<graphviz.dot.Digraph object at ...>
 ```
-![G_friend_2.png](docs/imgs/G_friend_2.png)
-
 
 ## Graph Querying
 
@@ -173,7 +179,9 @@ acts as a wildcard to matches all values.
 ```python3
 >>> p(G())
 [(friend, bob, alice, True),
+ (friend, bob, sal, True),
  (friend, alice, jane, True),
+ (friend, alice, rick, True),
  (coworker, bob, jane, True),
  (coworker, alice, jane, True),
  (distance, chicago, seattle, 422),
@@ -184,7 +192,9 @@ Only print relations where `bob` is the src:
 
 ```python3
 >>> p(G(source='bob'))
-[(friend, bob, alice, True), (coworker, bob, jane, True)]
+[(friend, bob, alice, True),
+ (friend, bob, sal, True),
+ (coworker, bob, jane, True)]
 ```
 
 Only print relations where `coworker` is the relation:
@@ -206,25 +216,13 @@ Only print relations where `jane` is the dest:
 [(coworker, bob, jane, True)]
 ```
 
-The entire graph can also be iterated directly.  This is the same
-as `G()` with no arguments:
-
-```python3
->>> p(G)
-[(friend, bob, alice, True),
- (friend, alice, jane, True),
- (coworker, bob, jane, True),
- (coworker, alice, jane, True),
- (distance, chicago, seattle, 422),
- (distance, seattle, portland, 42)]
-```
 Edges can be tested to see if they are contained in the Graph:
 
 Relations are accessible as attributes of the graph:
 
 ```python3
 >>> G.friend
-<Adjacency friend BOOL:2>
+<Adjacency friend BOOL:4>
 
 >>> G.coworker
 <Incidence coworker BOOL:2>
@@ -234,7 +232,10 @@ Relations can be iterated directly:
 
 ```python3
 >>> p(list(G.friend))
-[(friend, bob, alice, True), (friend, alice, jane, True)]
+[(friend, bob, alice, True),
+ (friend, bob, sal, True),
+ (friend, alice, jane, True),
+ (friend, alice, rick, True)]
 ```
 
 ## Graph Algorithms
@@ -276,7 +277,7 @@ Inspecting G shows that it has three columns and six edges:
 
 ```python3
 >>> G
-<Graph [friend, coworker, distance, karate]: 84>
+<Graph [friend, coworker, distance, karate]: 86>
 ```
 
 <!--phmdoctest-teardown-->

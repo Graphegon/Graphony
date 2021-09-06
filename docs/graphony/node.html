@@ -31,6 +31,7 @@
 
 
 from psycopg2.extras import Json
+from .util import query
 
 
 class Node:
@@ -38,7 +39,7 @@ class Node:
     Node object.
     &#34;&#34;&#34;
 
-    __slots__ = (&#34;graph&#34;, &#34;n_id&#34;, &#34;props&#34;)
+    __slots__ = (&#34;graph&#34;, &#34;n_id&#34;)
 
     def __init__(self, graph, n_id, **props):
         if isinstance(n_id, str):
@@ -46,7 +47,13 @@ class Node:
 
         self.graph = graph
         self.n_id = n_id
-        self.props = props
+
+    @property
+    @query
+    def props(self, curs):
+        &#34;&#34;&#34;
+        SELECT props from graphony.node where id = {self.n_id}
+        &#34;&#34;&#34;
 
     @property
     def name(self):
@@ -75,7 +82,7 @@ class Node:
     Node object.
     &#34;&#34;&#34;
 
-    __slots__ = (&#34;graph&#34;, &#34;n_id&#34;, &#34;props&#34;)
+    __slots__ = (&#34;graph&#34;, &#34;n_id&#34;)
 
     def __init__(self, graph, n_id, **props):
         if isinstance(n_id, str):
@@ -83,7 +90,13 @@ class Node:
 
         self.graph = graph
         self.n_id = n_id
-        self.props = props
+
+    @property
+    @query
+    def props(self, curs):
+        &#34;&#34;&#34;
+        SELECT props from graphony.node where id = {self.n_id}
+        &#34;&#34;&#34;
 
     @property
     def name(self):
@@ -95,6 +108,21 @@ class Node:
 </details>
 <h3 class="caret">Instance Attributes</h3>
 <dl class="nested active">
+<dt id="graphony.node.Node.props"><code class="name">var <span class="ident">props</span></code></dt>
+<dd>
+<div class="desc"><p>SELECT props from graphony.node where id = {self.n_id}</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+@query
+def props(self, curs):
+    &#34;&#34;&#34;
+    SELECT props from graphony.node where id = {self.n_id}
+    &#34;&#34;&#34;</code></pre>
+</details>
+</dd>
 <dt id="graphony.node.Node.name"><code class="name">var <span class="ident">name</span></code></dt>
 <dd>
 <div class="desc"><p>Lookup and return node name.</p></div>
@@ -113,10 +141,6 @@ def name(self):
 <div class="desc"><p>Return an attribute of instance, which is of type owner.</p></div>
 </dd>
 <dt id="graphony.node.Node.n_id"><code class="name">var <span class="ident">n_id</span></code></dt>
-<dd>
-<div class="desc"><p>Return an attribute of instance, which is of type owner.</p></div>
-</dd>
-<dt id="graphony.node.Node.props"><code class="name">var <span class="ident">props</span></code></dt>
 <dd>
 <div class="desc"><p>Return an attribute of instance, which is of type owner.</p></div>
 </dd>
