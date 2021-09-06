@@ -265,8 +265,8 @@ graph.
 ...  "select 'k_' || s_id, 'k_' || d_id "
 ...  "from graphony.karate")
 >>> G.karate.draw(show_weight=False, filename='docs/imgs/G_karate_2',
-...               graph_attr=dict(layout='sfdp'))
-<graphviz.dot.Digraph object at ...>
+...               directed=False, graph_attr=dict(layout='sfdp'))
+<graphviz.dot.Graph object at ...>
 ```
 ![G_karate_2.png](docs/imgs/G_karate_2.png)
 
