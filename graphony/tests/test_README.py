@@ -7,11 +7,12 @@ from phmdoctest.fixture import managenamespace
 @pytest.fixture(scope="module")
 def _phm_setup_doctest_teardown(doctest_namespace, managenamespace):
     # setup code line 78.
+    import os
     import pprint
     import postgresql
     from graphony import Graph, Node
     p = lambda r: pprint.pprint(sorted(list(r)))
-    pgdata, db_conn_string = postgresql.setup()
+    pgdata, db_conn_string = postgresql.setup(os.environ.get('RUNNER_TEMP'))
     postgresql.psql(f'-d "{db_conn_string}" -f dbinit/01.sql -f dbinit/02.sql')
     G = Graph(db_conn_string)
 
@@ -21,7 +22,7 @@ def _phm_setup_doctest_teardown(doctest_namespace, managenamespace):
     for k, v in additions.items():
         doctest_namespace[k] = v
     yield
-    # teardown code line 281.
+    # teardown code line 282.
     postgresql.teardown(pgdata)
 
     managenamespace(operation="clear")
@@ -43,13 +44,13 @@ def session_00000():
     """
 
 
-def session_00001_line_114():
+def session_00001_line_115():
     r"""
     >>> G.add_relation('friend')
     """
 
 
-def session_00002_line_120():
+def session_00002_line_121():
     r"""
     >>> G.friend += ('bob', 'alice')
     >>> G.friend.draw(show_weight=False, filename='docs/imgs/G_friend_1')
@@ -57,7 +58,7 @@ def session_00002_line_120():
     """
 
 
-def session_00003_line_131():
+def session_00003_line_132():
     r"""
     >>> jane = Node(G, 'jane', favorite_color='blue')
     >>> jane.props
@@ -68,14 +69,14 @@ def session_00003_line_131():
     """
 
 
-def session_00004_line_144():
+def session_00004_line_145():
     r"""
     >>> p(G.friend)
     [friend(bob, alice), friend(alice, jane)]
     """
 
 
-def session_00005_line_151():
+def session_00005_line_152():
     r"""
     >>> G.friend += [('bob', 'sal'), ('alice', 'rick')]
     >>> G.friend.draw(show_weight=False, filename='docs/imgs/G_friend_3')
@@ -83,7 +84,7 @@ def session_00005_line_151():
     """
 
 
-def session_00006_line_164():
+def session_00006_line_165():
     r"""
     >>> G.add_relation('coworker', incidence=True)
     >>> G.coworker += [('bob', 'jane'), ('alice', 'jane')]
@@ -94,7 +95,7 @@ def session_00006_line_164():
     """
 
 
-def session_00007_line_180():
+def session_00007_line_181():
     r"""
     >>> p(G())
     [friend(bob, alice),
@@ -108,21 +109,21 @@ def session_00007_line_180():
     """
 
 
-def session_00008_line_194():
+def session_00008_line_195():
     r"""
     >>> p(G(source='bob'))
     [friend(bob, alice), friend(bob, sal), coworker(bob, jane)]
     """
 
 
-def session_00009_line_201():
+def session_00009_line_202():
     r"""
     >>> p(G(relation='coworker'))
     [coworker(bob, jane), coworker(alice, jane)]
     """
 
 
-def session_00010_line_208():
+def session_00010_line_209():
     r"""
     >>> p(G(destination='jane'))
     [friend(alice, jane), coworker(bob, jane), coworker(alice, jane)]
@@ -132,7 +133,7 @@ def session_00010_line_208():
     """
 
 
-def session_00011_line_220():
+def session_00011_line_221():
     r"""
     >>> G.friend
     <Adjacency friend BOOL:4>
@@ -142,14 +143,14 @@ def session_00011_line_220():
     """
 
 
-def session_00012_line_230():
+def session_00012_line_231():
     r"""
     >>> p(list(G.friend))
     [friend(bob, alice), friend(bob, sal), friend(alice, jane), friend(alice, rick)]
     """
 
 
-def session_00013_line_256():
+def session_00013_line_257():
     r"""
     >>> G.add_relation('karate')
     >>> G.karate += G.sql(
@@ -161,14 +162,14 @@ def session_00013_line_256():
     """
 
 
-def session_00014_line_270():
+def session_00014_line_271():
     r"""
     >>> len(G.karate)
     78
     """
 
 
-def session_00015_line_274():
+def session_00015_line_275():
     r"""
     >>> G
     <Graph [friend, coworker, distance, karate]: 86>
