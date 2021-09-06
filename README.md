@@ -141,8 +141,8 @@ Now there are two edges in the `friend` relation, one from bob to
 alice and the other from alice to jane.
 
 ```python3
->>> p(G)
-[(friend, bob, alice, True), (friend, alice, jane, True)]
+>>> p(G.friend)
+[friend(bob, alice), friend(alice, jane)]
 ```
 
 An iterator of relation tuples can also be provided:
@@ -178,42 +178,38 @@ acts as a wildcard to matches all values.
 
 ```python3
 >>> p(G())
-[(friend, bob, alice, True),
- (friend, bob, sal, True),
- (friend, alice, jane, True),
- (friend, alice, rick, True),
- (coworker, bob, jane, True),
- (coworker, alice, jane, True),
- (distance, chicago, seattle, 422),
- (distance, seattle, portland, 42)]
+[friend(bob, alice),
+ friend(bob, sal),
+ friend(alice, jane),
+ friend(alice, rick),
+ coworker(bob, jane),
+ coworker(alice, jane),
+ distance(chicago, seattle, 422),
+ distance(seattle, portland, 42)]
 ```
 
 Only print relations where `bob` is the src:
 
 ```python3
 >>> p(G(source='bob'))
-[(friend, bob, alice, True),
- (friend, bob, sal, True),
- (coworker, bob, jane, True)]
+[friend(bob, alice), friend(bob, sal), coworker(bob, jane)]
 ```
 
 Only print relations where `coworker` is the relation:
 
 ```python3
 >>> p(G(relation='coworker'))
-[(coworker, bob, jane, True), (coworker, alice, jane, True)]
+[coworker(bob, jane), coworker(alice, jane)]
 ```
 
 Only print relations where `jane` is the dest:
 
 ```python3
 >>> p(G(destination='jane'))
-[(friend, alice, jane, True),
- (coworker, bob, jane, True),
- (coworker, alice, jane, True)]
+[friend(alice, jane), coworker(bob, jane), coworker(alice, jane)]
 
 >>> p(G(source='bob', relation='coworker', destination='jane'))
-[(coworker, bob, jane, True)]
+[coworker(bob, jane)]
 ```
 
 Edges can be tested to see if they are contained in the Graph:
@@ -232,10 +228,7 @@ Relations can be iterated directly:
 
 ```python3
 >>> p(list(G.friend))
-[(friend, bob, alice, True),
- (friend, bob, sal, True),
- (friend, alice, jane, True),
- (friend, alice, rick, True)]
+[friend(bob, alice), friend(bob, sal), friend(alice, jane), friend(alice, rick)]
 ```
 
 ## Graph Algorithms
@@ -277,11 +270,10 @@ query above:
 >>> len(G.karate)
 78
 ```
-Inspecting G shows that it has three columns and six edges:
-
 ```python3
 >>> G
 <Graph [friend, coworker, distance, karate]: 86>
+
 ```
 
 <!--phmdoctest-teardown-->

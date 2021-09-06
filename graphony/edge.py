@@ -15,9 +15,11 @@ class Edge(NamedTuple):
     eid: int = None
 
     def __repr__(self):
-        return (
-            f"({self.relation.name}, {self.source}, {self.destination}, {self.weight})"
-        )
+        if self.weight and isinstance(self.weight, bool):
+            weight = ""
+        else:
+            weight = f", {self.weight}"
+        return f"{self.relation.name}({self.source}, {self.destination}{weight})"
 
     @property
     def relation(self):
