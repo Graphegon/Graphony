@@ -162,7 +162,7 @@ def session_00013_line_263():
     >>> G.karate += G.sql(
     ...  "select 'k_' || s_id, 'k_' || d_id "
     ...  "from graphony.karate")
-    >>> G.karate.draw(show_weight=False, filename='docs/imgs/G_karate_2',
+    >>> G.karate.draw(show_weight=False, filename='docs/imgs/G_karate_3',
     ...               directed=False, graph_attr=dict(layout='sfdp'))
     <graphviz.dot.Graph object at ...>
     """

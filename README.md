@@ -264,11 +264,11 @@ graph.
 >>> G.karate += G.sql(
 ...  "select 'k_' || s_id, 'k_' || d_id "
 ...  "from graphony.karate")
->>> G.karate.draw(show_weight=False, filename='docs/imgs/G_karate_2',
+>>> G.karate.draw(show_weight=False, filename='docs/imgs/G_karate_3',
 ...               directed=False, graph_attr=dict(layout='sfdp'))
 <graphviz.dot.Graph object at ...>
 ```
-![G_karate_2.png](docs/imgs/G_karate_2.png)
+![G_karate_3.png](docs/imgs/G_karate_3.png)
 
 
 All the edges are in the karate relation, as defined in the sql
