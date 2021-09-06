@@ -21,7 +21,7 @@ def _phm_setup_doctest_teardown(doctest_namespace, managenamespace):
     for k, v in additions.items():
         doctest_namespace[k] = v
     yield
-    # teardown code line 290.
+    # teardown code line 291.
     postgresql.teardown(pgdata)
 
     managenamespace(operation="clear")
@@ -168,14 +168,14 @@ def session_00013_line_263():
     """
 
 
-def session_00014_line_278():
+def session_00014_line_279():
     r"""
     >>> len(G.karate)
     78
     """
 
 
-def session_00015_line_284():
+def session_00015_line_285():
     r"""
     >>> G
     <Graph [friend, coworker, distance, karate]: 86>
