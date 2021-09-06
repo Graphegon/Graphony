@@ -268,9 +268,7 @@ graph.
 ...               directed=False, graph_attr=dict(layout='sfdp'))
 <graphviz.dot.Graph object at ...>
 ```
-<p align="center">
 ![G_karate_3.png](docs/imgs/G_karate_3.png)
-</p>
 
 All the edges are in the karate relation, as defined in the sql
 query above:
