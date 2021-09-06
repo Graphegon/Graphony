@@ -262,9 +262,10 @@ graph.
 ```python3
 >>> G.add_relation('karate')
 >>> G.karate += G.sql(
-...  "select 'karate_' || s_id, 'karate_' || d_id "
+...  "select 'k_' || s_id, 'k_' || d_id "
 ...  "from graphony.karate")
->>> G.karate.draw(show_weight=False, filename='docs/imgs/G_karate_1')
+>>> G.karate.draw(show_weight=False, filename='docs/imgs/G_karate_1',
+...               graph_attr=dict(layout='sfdp'))
 <graphviz.dot.Digraph object at ...>
 ```
 ![G_karate_1.png](docs/imgs/G_karate_1.png)

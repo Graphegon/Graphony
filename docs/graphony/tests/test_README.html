@@ -50,7 +50,7 @@ def _phm_setup_doctest_teardown(doctest_namespace, managenamespace):
     for k, v in additions.items():
         doctest_namespace[k] = v
     yield
-    # teardown code line 289.
+    # teardown code line 290.
     postgresql.teardown(pgdata)
 
     managenamespace(operation=&#34;clear&#34;)
@@ -189,21 +189,22 @@ def session_00013_line_263():
     r&#34;&#34;&#34;
     &gt;&gt;&gt; G.add_relation(&#39;karate&#39;)
     &gt;&gt;&gt; G.karate += G.sql(
-    ...  &#34;select &#39;karate_&#39; || s_id, &#39;karate_&#39; || d_id &#34;
+    ...  &#34;select &#39;k_&#39; || s_id, &#39;k_&#39; || d_id &#34;
     ...  &#34;from graphony.karate&#34;)
-    &gt;&gt;&gt; G.karate.draw(show_weight=False, filename=&#39;docs/imgs/G_karate_1&#39;)
+    &gt;&gt;&gt; G.karate.draw(show_weight=False, filename=&#39;docs/imgs/G_karate_1&#39;,
+    ...               graph_attr=dict(layout=&#39;sfdp&#39;))
     &lt;graphviz.dot.Digraph object at ...&gt;
     &#34;&#34;&#34;
 
 
-def session_00014_line_277():
+def session_00014_line_278():
     r&#34;&#34;&#34;
     &gt;&gt;&gt; len(G.karate)
     78
     &#34;&#34;&#34;
 
 
-def session_00015_line_283():
+def session_00015_line_284():
     r&#34;&#34;&#34;
     &gt;&gt;&gt; G
     &lt;Graph [friend, coworker, distance, karate]: 86&gt;
@@ -531,9 +532,10 @@ def populate_doctest_namespace(doctest_namespace, managenamespace):
 <dd>
 <div class="desc"><pre><code class="language-python-repl">&gt;&gt;&gt; G.add_relation('karate')
 &gt;&gt;&gt; G.karate += G.sql(
-...  &quot;select 'karate_' || s_id, 'karate_' || d_id &quot;
+...  &quot;select 'k_' || s_id, 'k_' || d_id &quot;
 ...  &quot;from graphony.karate&quot;)
-&gt;&gt;&gt; G.karate.draw(show_weight=False, filename='docs/imgs/G_karate_1')
+&gt;&gt;&gt; G.karate.draw(show_weight=False, filename='docs/imgs/G_karate_1',
+...               graph_attr=dict(layout='sfdp'))
 &lt;graphviz.dot.Digraph object at ...&gt;
 </code></pre></div>
 <details class="source">
@@ -544,15 +546,16 @@ def populate_doctest_namespace(doctest_namespace, managenamespace):
     r&#34;&#34;&#34;
     &gt;&gt;&gt; G.add_relation(&#39;karate&#39;)
     &gt;&gt;&gt; G.karate += G.sql(
-    ...  &#34;select &#39;karate_&#39; || s_id, &#39;karate_&#39; || d_id &#34;
+    ...  &#34;select &#39;k_&#39; || s_id, &#39;k_&#39; || d_id &#34;
     ...  &#34;from graphony.karate&#34;)
-    &gt;&gt;&gt; G.karate.draw(show_weight=False, filename=&#39;docs/imgs/G_karate_1&#39;)
+    &gt;&gt;&gt; G.karate.draw(show_weight=False, filename=&#39;docs/imgs/G_karate_1&#39;,
+    ...               graph_attr=dict(layout=&#39;sfdp&#39;))
     &lt;graphviz.dot.Digraph object at ...&gt;
     &#34;&#34;&#34;</code></pre>
 </details>
 </dd>
-<dt id="graphony.tests.test_README.session_00014_line_277"><code class="name flex">
-<span>def <span class="ident">session_00014_line_277</span></span>(<span>)</span>
+<dt id="graphony.tests.test_README.session_00014_line_278"><code class="name flex">
+<span>def <span class="ident">session_00014_line_278</span></span>(<span>)</span>
 </code></dt>
 <dd>
 <div class="desc"><pre><code class="language-python-repl">&gt;&gt;&gt; len(G.karate)
@@ -562,15 +565,15 @@ def populate_doctest_namespace(doctest_namespace, managenamespace):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def session_00014_line_277():
+<pre><code class="python">def session_00014_line_278():
     r&#34;&#34;&#34;
     &gt;&gt;&gt; len(G.karate)
     78
     &#34;&#34;&#34;</code></pre>
 </details>
 </dd>
-<dt id="graphony.tests.test_README.session_00015_line_283"><code class="name flex">
-<span>def <span class="ident">session_00015_line_283</span></span>(<span>)</span>
+<dt id="graphony.tests.test_README.session_00015_line_284"><code class="name flex">
+<span>def <span class="ident">session_00015_line_284</span></span>(<span>)</span>
 </code></dt>
 <dd>
 <div class="desc"><pre><code class="language-python-repl">&gt;&gt;&gt; G
@@ -580,7 +583,7 @@ def populate_doctest_namespace(doctest_namespace, managenamespace):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def session_00015_line_283():
+<pre><code class="python">def session_00015_line_284():
     r&#34;&#34;&#34;
     &gt;&gt;&gt; G
     &lt;Graph [friend, coworker, distance, karate]: 86&gt;
@@ -619,8 +622,8 @@ def populate_doctest_namespace(doctest_namespace, managenamespace):
 <li><code><a title="graphony.tests.test_README.session_00011_line_224" href="#graphony.tests.test_README.session_00011_line_224">session_00011_line_224</a></code></li>
 <li><code><a title="graphony.tests.test_README.session_00012_line_234" href="#graphony.tests.test_README.session_00012_line_234">session_00012_line_234</a></code></li>
 <li><code><a title="graphony.tests.test_README.session_00013_line_263" href="#graphony.tests.test_README.session_00013_line_263">session_00013_line_263</a></code></li>
-<li><code><a title="graphony.tests.test_README.session_00014_line_277" href="#graphony.tests.test_README.session_00014_line_277">session_00014_line_277</a></code></li>
-<li><code><a title="graphony.tests.test_README.session_00015_line_283" href="#graphony.tests.test_README.session_00015_line_283">session_00015_line_283</a></code></li>
+<li><code><a title="graphony.tests.test_README.session_00014_line_278" href="#graphony.tests.test_README.session_00014_line_278">session_00014_line_278</a></code></li>
+<li><code><a title="graphony.tests.test_README.session_00015_line_284" href="#graphony.tests.test_README.session_00015_line_284">session_00015_line_284</a></code></li>
 </ul>
 </li>
 </ul>
