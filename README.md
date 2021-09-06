@@ -117,8 +117,8 @@ first.
 Now edges in that relation can be added to the graph:
 
 ```python3
->>> G += ('friend', 'bob', 'alice')
->>> G.draw('friend', show_weight=False, filename='docs/imgs/G_friend_1')
+>>> G.friend += ('bob', 'alice')
+>>> G.friend.draw(show_weight=False, filename='docs/imgs/G_friend_1')
 <graphviz.dot.Digraph object at ...>
 ```
 ![G_friend_1.png](docs/imgs/G_friend_1.png)
@@ -131,8 +131,8 @@ provide properties for them:
 >>> jane = Node(G, 'jane', favorite_color='blue')
 >>> jane.props
 {'favorite_color': 'blue'}
->>> G += ('friend', 'alice', jane)
->>> G.draw('friend', show_weight=False, filename='docs/imgs/G_friend_2')
+>>> G.friend += ('alice', jane)
+>>> G.friend.draw(show_weight=False, filename='docs/imgs/G_friend_2')
 <graphviz.dot.Digraph object at ...>
 ```
 ![G_friend_2.png](docs/imgs/G_friend_2.png)
@@ -148,8 +148,8 @@ alice and the other from alice to jane.
 An iterator of relation tuples can also be provided:
 
 ```python3
->>> G += [('friend', 'bob', 'sal'), ('friend', 'alice', 'rick')]
->>> G.draw('friend', show_weight=False, filename='docs/imgs/G_friend_3')
+>>> G.friend += [('bob', 'sal'), ('alice', 'rick')]
+>>> G.friend.draw(show_weight=False, filename='docs/imgs/G_friend_3')
 <graphviz.dot.Digraph object at ...>
 ```
 ![G_friend_3.png](docs/imgs/G_friend_3.png)
@@ -162,11 +162,11 @@ To create edges of a certain type, 4 elements can be provided:
 
 ```python3
 >>> G.add_relation('coworker', incidence=True)
->>> G += [('coworker', 'bob', 'jane'), ('coworker', 'alice', 'jane')]
+>>> G.coworker += [('bob', 'jane'), ('alice', 'jane')]
 
 >>> G.add_relation('distance', int)
->>> G += [('distance', 'chicago', 'seattle', 422),
-...       ('distance', 'seattle', 'portland', 42)]
+>>> G.distance += [('chicago', 'seattle', 422),
+...                ('seattle', 'portland', 42)]
 ```
 
 ## Graph Querying
@@ -261,10 +261,14 @@ graph.
 
 ```python3
 >>> G.add_relation('karate')
->>> G += G.sql(
-...  "select 'karate', 'karate_' || s_id, 'karate_' || d_id "
+>>> G.karate += G.sql(
+...  "select 'karate_' || s_id, 'karate_' || d_id "
 ...  "from graphony.karate")
+>>> G.karate.draw(show_weight=False, filename='docs/imgs/G_karate_1')
+<graphviz.dot.Digraph object at ...>
 ```
+![G_karate_1.png](docs/imgs/G_karate_1.png)
+
 
 All the edges are in the karate relation, as defined in the sql
 query above:

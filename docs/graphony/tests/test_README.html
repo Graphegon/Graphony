@@ -50,7 +50,7 @@ def _phm_setup_doctest_teardown(doctest_namespace, managenamespace):
     for k, v in additions.items():
         doctest_namespace[k] = v
     yield
-    # teardown code line 285.
+    # teardown code line 289.
     postgresql.teardown(pgdata)
 
     managenamespace(operation=&#34;clear&#34;)
@@ -80,8 +80,8 @@ def session_00001_line_114():
 
 def session_00002_line_120():
     r&#34;&#34;&#34;
-    &gt;&gt;&gt; G += (&#39;friend&#39;, &#39;bob&#39;, &#39;alice&#39;)
-    &gt;&gt;&gt; G.draw(&#39;friend&#39;, show_weight=False, filename=&#39;docs/imgs/G_friend_1&#39;)
+    &gt;&gt;&gt; G.friend += (&#39;bob&#39;, &#39;alice&#39;)
+    &gt;&gt;&gt; G.friend.draw(show_weight=False, filename=&#39;docs/imgs/G_friend_1&#39;)
     &lt;graphviz.dot.Digraph object at ...&gt;
     &#34;&#34;&#34;
 
@@ -91,8 +91,8 @@ def session_00003_line_131():
     &gt;&gt;&gt; jane = Node(G, &#39;jane&#39;, favorite_color=&#39;blue&#39;)
     &gt;&gt;&gt; jane.props
     {&#39;favorite_color&#39;: &#39;blue&#39;}
-    &gt;&gt;&gt; G += (&#39;friend&#39;, &#39;alice&#39;, jane)
-    &gt;&gt;&gt; G.draw(&#39;friend&#39;, show_weight=False, filename=&#39;docs/imgs/G_friend_2&#39;)
+    &gt;&gt;&gt; G.friend += (&#39;alice&#39;, jane)
+    &gt;&gt;&gt; G.friend.draw(show_weight=False, filename=&#39;docs/imgs/G_friend_2&#39;)
     &lt;graphviz.dot.Digraph object at ...&gt;
     &#34;&#34;&#34;
 
@@ -106,8 +106,8 @@ def session_00004_line_144():
 
 def session_00005_line_151():
     r&#34;&#34;&#34;
-    &gt;&gt;&gt; G += [(&#39;friend&#39;, &#39;bob&#39;, &#39;sal&#39;), (&#39;friend&#39;, &#39;alice&#39;, &#39;rick&#39;)]
-    &gt;&gt;&gt; G.draw(&#39;friend&#39;, show_weight=False, filename=&#39;docs/imgs/G_friend_3&#39;)
+    &gt;&gt;&gt; G.friend += [(&#39;bob&#39;, &#39;sal&#39;), (&#39;alice&#39;, &#39;rick&#39;)]
+    &gt;&gt;&gt; G.friend.draw(show_weight=False, filename=&#39;docs/imgs/G_friend_3&#39;)
     &lt;graphviz.dot.Digraph object at ...&gt;
     &#34;&#34;&#34;
 
@@ -115,11 +115,11 @@ def session_00005_line_151():
 def session_00006_line_164():
     r&#34;&#34;&#34;
     &gt;&gt;&gt; G.add_relation(&#39;coworker&#39;, incidence=True)
-    &gt;&gt;&gt; G += [(&#39;coworker&#39;, &#39;bob&#39;, &#39;jane&#39;), (&#39;coworker&#39;, &#39;alice&#39;, &#39;jane&#39;)]
+    &gt;&gt;&gt; G.coworker += [(&#39;bob&#39;, &#39;jane&#39;), (&#39;alice&#39;, &#39;jane&#39;)]
 
     &gt;&gt;&gt; G.add_relation(&#39;distance&#39;, int)
-    &gt;&gt;&gt; G += [(&#39;distance&#39;, &#39;chicago&#39;, &#39;seattle&#39;, 422),
-    ...       (&#39;distance&#39;, &#39;seattle&#39;, &#39;portland&#39;, 42)]
+    &gt;&gt;&gt; G.distance += [(&#39;chicago&#39;, &#39;seattle&#39;, 422),
+    ...                (&#39;seattle&#39;, &#39;portland&#39;, 42)]
     &#34;&#34;&#34;
 
 
@@ -188,20 +188,22 @@ def session_00012_line_234():
 def session_00013_line_263():
     r&#34;&#34;&#34;
     &gt;&gt;&gt; G.add_relation(&#39;karate&#39;)
-    &gt;&gt;&gt; G += G.sql(
-    ...  &#34;select &#39;karate&#39;, &#39;karate_&#39; || s_id, &#39;karate_&#39; || d_id &#34;
+    &gt;&gt;&gt; G.karate += G.sql(
+    ...  &#34;select &#39;karate_&#39; || s_id, &#39;karate_&#39; || d_id &#34;
     ...  &#34;from graphony.karate&#34;)
+    &gt;&gt;&gt; G.karate.draw(show_weight=False, filename=&#39;docs/imgs/G_karate_1&#39;)
+    &lt;graphviz.dot.Digraph object at ...&gt;
     &#34;&#34;&#34;
 
 
-def session_00014_line_273():
+def session_00014_line_277():
     r&#34;&#34;&#34;
     &gt;&gt;&gt; len(G.karate)
     78
     &#34;&#34;&#34;
 
 
-def session_00015_line_279():
+def session_00015_line_283():
     r&#34;&#34;&#34;
     &gt;&gt;&gt; G
     &lt;Graph [friend, coworker, distance, karate]: 86&gt;
@@ -269,8 +271,8 @@ def populate_doctest_namespace(doctest_namespace, managenamespace):
 <span>def <span class="ident">session_00002_line_120</span></span>(<span>)</span>
 </code></dt>
 <dd>
-<div class="desc"><pre><code class="language-python-repl">&gt;&gt;&gt; G += ('friend', 'bob', 'alice')
-&gt;&gt;&gt; G.draw('friend', show_weight=False, filename='docs/imgs/G_friend_1')
+<div class="desc"><pre><code class="language-python-repl">&gt;&gt;&gt; G.friend += ('bob', 'alice')
+&gt;&gt;&gt; G.friend.draw(show_weight=False, filename='docs/imgs/G_friend_1')
 &lt;graphviz.dot.Digraph object at ...&gt;
 </code></pre></div>
 <details class="source">
@@ -279,8 +281,8 @@ def populate_doctest_namespace(doctest_namespace, managenamespace):
 </summary>
 <pre><code class="python">def session_00002_line_120():
     r&#34;&#34;&#34;
-    &gt;&gt;&gt; G += (&#39;friend&#39;, &#39;bob&#39;, &#39;alice&#39;)
-    &gt;&gt;&gt; G.draw(&#39;friend&#39;, show_weight=False, filename=&#39;docs/imgs/G_friend_1&#39;)
+    &gt;&gt;&gt; G.friend += (&#39;bob&#39;, &#39;alice&#39;)
+    &gt;&gt;&gt; G.friend.draw(show_weight=False, filename=&#39;docs/imgs/G_friend_1&#39;)
     &lt;graphviz.dot.Digraph object at ...&gt;
     &#34;&#34;&#34;</code></pre>
 </details>
@@ -292,8 +294,8 @@ def populate_doctest_namespace(doctest_namespace, managenamespace):
 <div class="desc"><pre><code class="language-python-repl">&gt;&gt;&gt; jane = Node(G, 'jane', favorite_color='blue')
 &gt;&gt;&gt; jane.props
 {'favorite_color': 'blue'}
-&gt;&gt;&gt; G += ('friend', 'alice', jane)
-&gt;&gt;&gt; G.draw('friend', show_weight=False, filename='docs/imgs/G_friend_2')
+&gt;&gt;&gt; G.friend += ('alice', jane)
+&gt;&gt;&gt; G.friend.draw(show_weight=False, filename='docs/imgs/G_friend_2')
 &lt;graphviz.dot.Digraph object at ...&gt;
 </code></pre></div>
 <details class="source">
@@ -305,8 +307,8 @@ def populate_doctest_namespace(doctest_namespace, managenamespace):
     &gt;&gt;&gt; jane = Node(G, &#39;jane&#39;, favorite_color=&#39;blue&#39;)
     &gt;&gt;&gt; jane.props
     {&#39;favorite_color&#39;: &#39;blue&#39;}
-    &gt;&gt;&gt; G += (&#39;friend&#39;, &#39;alice&#39;, jane)
-    &gt;&gt;&gt; G.draw(&#39;friend&#39;, show_weight=False, filename=&#39;docs/imgs/G_friend_2&#39;)
+    &gt;&gt;&gt; G.friend += (&#39;alice&#39;, jane)
+    &gt;&gt;&gt; G.friend.draw(show_weight=False, filename=&#39;docs/imgs/G_friend_2&#39;)
     &lt;graphviz.dot.Digraph object at ...&gt;
     &#34;&#34;&#34;</code></pre>
 </details>
@@ -333,8 +335,8 @@ def populate_doctest_namespace(doctest_namespace, managenamespace):
 <span>def <span class="ident">session_00005_line_151</span></span>(<span>)</span>
 </code></dt>
 <dd>
-<div class="desc"><pre><code class="language-python-repl">&gt;&gt;&gt; G += [('friend', 'bob', 'sal'), ('friend', 'alice', 'rick')]
-&gt;&gt;&gt; G.draw('friend', show_weight=False, filename='docs/imgs/G_friend_3')
+<div class="desc"><pre><code class="language-python-repl">&gt;&gt;&gt; G.friend += [('bob', 'sal'), ('alice', 'rick')]
+&gt;&gt;&gt; G.friend.draw(show_weight=False, filename='docs/imgs/G_friend_3')
 &lt;graphviz.dot.Digraph object at ...&gt;
 </code></pre></div>
 <details class="source">
@@ -343,8 +345,8 @@ def populate_doctest_namespace(doctest_namespace, managenamespace):
 </summary>
 <pre><code class="python">def session_00005_line_151():
     r&#34;&#34;&#34;
-    &gt;&gt;&gt; G += [(&#39;friend&#39;, &#39;bob&#39;, &#39;sal&#39;), (&#39;friend&#39;, &#39;alice&#39;, &#39;rick&#39;)]
-    &gt;&gt;&gt; G.draw(&#39;friend&#39;, show_weight=False, filename=&#39;docs/imgs/G_friend_3&#39;)
+    &gt;&gt;&gt; G.friend += [(&#39;bob&#39;, &#39;sal&#39;), (&#39;alice&#39;, &#39;rick&#39;)]
+    &gt;&gt;&gt; G.friend.draw(show_weight=False, filename=&#39;docs/imgs/G_friend_3&#39;)
     &lt;graphviz.dot.Digraph object at ...&gt;
     &#34;&#34;&#34;</code></pre>
 </details>
@@ -354,11 +356,11 @@ def populate_doctest_namespace(doctest_namespace, managenamespace):
 </code></dt>
 <dd>
 <div class="desc"><pre><code class="language-python-repl">&gt;&gt;&gt; G.add_relation('coworker', incidence=True)
-&gt;&gt;&gt; G += [('coworker', 'bob', 'jane'), ('coworker', 'alice', 'jane')]
+&gt;&gt;&gt; G.coworker += [('bob', 'jane'), ('alice', 'jane')]
 </code></pre>
 <pre><code class="language-python-repl">&gt;&gt;&gt; G.add_relation('distance', int)
-&gt;&gt;&gt; G += [('distance', 'chicago', 'seattle', 422),
-...       ('distance', 'seattle', 'portland', 42)]
+&gt;&gt;&gt; G.distance += [('chicago', 'seattle', 422),
+...                ('seattle', 'portland', 42)]
 </code></pre></div>
 <details class="source">
 <summary>
@@ -367,11 +369,11 @@ def populate_doctest_namespace(doctest_namespace, managenamespace):
 <pre><code class="python">def session_00006_line_164():
     r&#34;&#34;&#34;
     &gt;&gt;&gt; G.add_relation(&#39;coworker&#39;, incidence=True)
-    &gt;&gt;&gt; G += [(&#39;coworker&#39;, &#39;bob&#39;, &#39;jane&#39;), (&#39;coworker&#39;, &#39;alice&#39;, &#39;jane&#39;)]
+    &gt;&gt;&gt; G.coworker += [(&#39;bob&#39;, &#39;jane&#39;), (&#39;alice&#39;, &#39;jane&#39;)]
 
     &gt;&gt;&gt; G.add_relation(&#39;distance&#39;, int)
-    &gt;&gt;&gt; G += [(&#39;distance&#39;, &#39;chicago&#39;, &#39;seattle&#39;, 422),
-    ...       (&#39;distance&#39;, &#39;seattle&#39;, &#39;portland&#39;, 42)]
+    &gt;&gt;&gt; G.distance += [(&#39;chicago&#39;, &#39;seattle&#39;, 422),
+    ...                (&#39;seattle&#39;, &#39;portland&#39;, 42)]
     &#34;&#34;&#34;</code></pre>
 </details>
 </dd>
@@ -528,9 +530,11 @@ def populate_doctest_namespace(doctest_namespace, managenamespace):
 </code></dt>
 <dd>
 <div class="desc"><pre><code class="language-python-repl">&gt;&gt;&gt; G.add_relation('karate')
-&gt;&gt;&gt; G += G.sql(
-...  &quot;select 'karate', 'karate_' || s_id, 'karate_' || d_id &quot;
+&gt;&gt;&gt; G.karate += G.sql(
+...  &quot;select 'karate_' || s_id, 'karate_' || d_id &quot;
 ...  &quot;from graphony.karate&quot;)
+&gt;&gt;&gt; G.karate.draw(show_weight=False, filename='docs/imgs/G_karate_1')
+&lt;graphviz.dot.Digraph object at ...&gt;
 </code></pre></div>
 <details class="source">
 <summary>
@@ -539,14 +543,16 @@ def populate_doctest_namespace(doctest_namespace, managenamespace):
 <pre><code class="python">def session_00013_line_263():
     r&#34;&#34;&#34;
     &gt;&gt;&gt; G.add_relation(&#39;karate&#39;)
-    &gt;&gt;&gt; G += G.sql(
-    ...  &#34;select &#39;karate&#39;, &#39;karate_&#39; || s_id, &#39;karate_&#39; || d_id &#34;
+    &gt;&gt;&gt; G.karate += G.sql(
+    ...  &#34;select &#39;karate_&#39; || s_id, &#39;karate_&#39; || d_id &#34;
     ...  &#34;from graphony.karate&#34;)
+    &gt;&gt;&gt; G.karate.draw(show_weight=False, filename=&#39;docs/imgs/G_karate_1&#39;)
+    &lt;graphviz.dot.Digraph object at ...&gt;
     &#34;&#34;&#34;</code></pre>
 </details>
 </dd>
-<dt id="graphony.tests.test_README.session_00014_line_273"><code class="name flex">
-<span>def <span class="ident">session_00014_line_273</span></span>(<span>)</span>
+<dt id="graphony.tests.test_README.session_00014_line_277"><code class="name flex">
+<span>def <span class="ident">session_00014_line_277</span></span>(<span>)</span>
 </code></dt>
 <dd>
 <div class="desc"><pre><code class="language-python-repl">&gt;&gt;&gt; len(G.karate)
@@ -556,15 +562,15 @@ def populate_doctest_namespace(doctest_namespace, managenamespace):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def session_00014_line_273():
+<pre><code class="python">def session_00014_line_277():
     r&#34;&#34;&#34;
     &gt;&gt;&gt; len(G.karate)
     78
     &#34;&#34;&#34;</code></pre>
 </details>
 </dd>
-<dt id="graphony.tests.test_README.session_00015_line_279"><code class="name flex">
-<span>def <span class="ident">session_00015_line_279</span></span>(<span>)</span>
+<dt id="graphony.tests.test_README.session_00015_line_283"><code class="name flex">
+<span>def <span class="ident">session_00015_line_283</span></span>(<span>)</span>
 </code></dt>
 <dd>
 <div class="desc"><pre><code class="language-python-repl">&gt;&gt;&gt; G
@@ -574,7 +580,7 @@ def populate_doctest_namespace(doctest_namespace, managenamespace):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def session_00015_line_279():
+<pre><code class="python">def session_00015_line_283():
     r&#34;&#34;&#34;
     &gt;&gt;&gt; G
     &lt;Graph [friend, coworker, distance, karate]: 86&gt;
@@ -613,8 +619,8 @@ def populate_doctest_namespace(doctest_namespace, managenamespace):
 <li><code><a title="graphony.tests.test_README.session_00011_line_224" href="#graphony.tests.test_README.session_00011_line_224">session_00011_line_224</a></code></li>
 <li><code><a title="graphony.tests.test_README.session_00012_line_234" href="#graphony.tests.test_README.session_00012_line_234">session_00012_line_234</a></code></li>
 <li><code><a title="graphony.tests.test_README.session_00013_line_263" href="#graphony.tests.test_README.session_00013_line_263">session_00013_line_263</a></code></li>
-<li><code><a title="graphony.tests.test_README.session_00014_line_273" href="#graphony.tests.test_README.session_00014_line_273">session_00014_line_273</a></code></li>
-<li><code><a title="graphony.tests.test_README.session_00015_line_279" href="#graphony.tests.test_README.session_00015_line_279">session_00015_line_279</a></code></li>
+<li><code><a title="graphony.tests.test_README.session_00014_line_277" href="#graphony.tests.test_README.session_00014_line_277">session_00014_line_277</a></code></li>
+<li><code><a title="graphony.tests.test_README.session_00015_line_283" href="#graphony.tests.test_README.session_00015_line_283">session_00015_line_283</a></code></li>
 </ul>
 </li>
 </ul>

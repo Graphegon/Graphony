@@ -34,7 +34,6 @@ import csv
 from functools import lru_cache
 from pickle import dumps, loads
 
-from pygraphblas.gviz import draw_graph
 import psycopg2 as pg
 
 from .util import query
@@ -118,24 +117,6 @@ class Graph:
             c.execute(sql_code)
             return c.fetchall()
 
-    def add(self, relation, source, destination, weight=True):
-        &#34;&#34;&#34;Add an edge to the graph with an optional weight.&#34;&#34;&#34;
-        if not relation.isidentifier() or relation.startswith(&#34;_&#34;):
-            assert NameError(
-                &#34;relation name must start with a letter, &#34;
-                &#34;and can only contain letters, numbers, and underscores&#34;
-            )
-
-        rel = getattr(self, relation)
-
-        if isinstance(source, str):
-            source = Node(self, source)
-
-        if isinstance(destination, str):
-            destination = Node(self, destination)
-
-        rel.add(source, destination, weight)
-
     def add_relation(self, name, weight_type=None, incidence=False):
         &#34;&#34;&#34;Add a new relation&#34;&#34;&#34;
         rid = self._upsert_relation(name, dumps(weight_type))
@@ -150,16 +131,6 @@ class Graph:
         if n_id is None:
             raise KeyError(key)
         return n_id
-
-    def __iadd__(self, relation):
-        if isinstance(relation, tuple):
-            self.add(*relation)
-        elif isinstance(relation, Graph):
-            raise TypeError(&#34;todo&#34;)
-        else:
-            for i in relation:
-                self.add(*i)
-        return self
 
     def __len__(self):
         &#34;&#34;&#34;Returns the number of triples in the graph.&#34;&#34;&#34;
@@ -266,12 +237,6 @@ class Graph:
             for rid, rel in self.relations.items():
                 for edge in rel:
                     yield edge
-
-    def draw(self, name, *args, **kwargs):
-        rid = self._get_relation_id(name)
-        adj = self.relations[rid]()
-        names = {i: self._get_node_name(i) for i in set(adj.rows) | set(adj.cols)}
-        return draw_graph(adj, label_vector=names, *args, **kwargs)
 
 
 def read_csv(graph, fname, encoding=&#34;utf8&#34;, **kw):
@@ -373,24 +338,6 @@ def read_csv(graph, fname, encoding=&#34;utf8&#34;, **kw):
             c.execute(sql_code)
             return c.fetchall()
 
-    def add(self, relation, source, destination, weight=True):
-        &#34;&#34;&#34;Add an edge to the graph with an optional weight.&#34;&#34;&#34;
-        if not relation.isidentifier() or relation.startswith(&#34;_&#34;):
-            assert NameError(
-                &#34;relation name must start with a letter, &#34;
-                &#34;and can only contain letters, numbers, and underscores&#34;
-            )
-
-        rel = getattr(self, relation)
-
-        if isinstance(source, str):
-            source = Node(self, source)
-
-        if isinstance(destination, str):
-            destination = Node(self, destination)
-
-        rel.add(source, destination, weight)
-
     def add_relation(self, name, weight_type=None, incidence=False):
         &#34;&#34;&#34;Add a new relation&#34;&#34;&#34;
         rid = self._upsert_relation(name, dumps(weight_type))
@@ -405,16 +352,6 @@ def read_csv(graph, fname, encoding=&#34;utf8&#34;, **kw):
         if n_id is None:
             raise KeyError(key)
         return n_id
-
-    def __iadd__(self, relation):
-        if isinstance(relation, tuple):
-            self.add(*relation)
-        elif isinstance(relation, Graph):
-            raise TypeError(&#34;todo&#34;)
-        else:
-            for i in relation:
-                self.add(*i)
-        return self
 
     def __len__(self):
         &#34;&#34;&#34;Returns the number of triples in the graph.&#34;&#34;&#34;
@@ -520,13 +457,7 @@ def read_csv(graph, fname, encoding=&#34;utf8&#34;, **kw):
         else:  # None,None,None
             for rid, rel in self.relations.items():
                 for edge in rel:
-                    yield edge
-
-    def draw(self, name, *args, **kwargs):
-        rid = self._get_relation_id(name)
-        adj = self.relations[rid]()
-        names = {i: self._get_node_name(i) for i in set(adj.rows) | set(adj.cols)}
-        return draw_graph(adj, label_vector=names, *args, **kwargs)</code></pre>
+                    yield edge</code></pre>
 </details>
 <h3 class="caret">Methods</h3>
 <dl class="nested active">
@@ -546,34 +477,6 @@ def read_csv(graph, fname, encoding=&#34;utf8&#34;, **kw):
         return c.fetchall()</code></pre>
 </details>
 </dd>
-<dt id="graphony.graph.Graph.add"><code class="name flex">
-<span>def <span class="ident">add</span></span>(<span>self, relation, source, destination, weight=True)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Add an edge to the graph with an optional weight.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def add(self, relation, source, destination, weight=True):
-    &#34;&#34;&#34;Add an edge to the graph with an optional weight.&#34;&#34;&#34;
-    if not relation.isidentifier() or relation.startswith(&#34;_&#34;):
-        assert NameError(
-            &#34;relation name must start with a letter, &#34;
-            &#34;and can only contain letters, numbers, and underscores&#34;
-        )
-
-    rel = getattr(self, relation)
-
-    if isinstance(source, str):
-        source = Node(self, source)
-
-    if isinstance(destination, str):
-        destination = Node(self, destination)
-
-    rel.add(source, destination, weight)</code></pre>
-</details>
-</dd>
 <dt id="graphony.graph.Graph.add_relation"><code class="name flex">
 <span>def <span class="ident">add_relation</span></span>(<span>self, name, weight_type=None, incidence=False)</span>
 </code></dt>
@@ -588,22 +491,6 @@ def read_csv(graph, fname, encoding=&#34;utf8&#34;, **kw):
     rid = self._upsert_relation(name, dumps(weight_type))
     rel = Relation(self, rid, name, weight_type, incidence)
     self.relations[rid] = rel</code></pre>
-</details>
-</dd>
-<dt id="graphony.graph.Graph.draw"><code class="name flex">
-<span>def <span class="ident">draw</span></span>(<span>self, name, *args, **kwargs)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def draw(self, name, *args, **kwargs):
-    rid = self._get_relation_id(name)
-    adj = self.relations[rid]()
-    names = {i: self._get_node_name(i) for i in set(adj.rows) | set(adj.cols)}
-    return draw_graph(adj, label_vector=names, *args, **kwargs)</code></pre>
 </details>
 </dd>
 </dl>
@@ -661,9 +548,7 @@ def read_csv(graph, fname, encoding=&#34;utf8&#34;, **kw):
 <li>
 <code class="caret"><a title="graphony.graph.Graph" href="#graphony.graph.Graph">Graph</a></code>
 <ul class=" nested ">
-<li><code><a title="graphony.graph.Graph.add" href="#graphony.graph.Graph.add">add</a></code></li>
 <li><code><a title="graphony.graph.Graph.add_relation" href="#graphony.graph.Graph.add_relation">add_relation</a></code></li>
-<li><code><a title="graphony.graph.Graph.draw" href="#graphony.graph.Graph.draw">draw</a></code></li>
 <li><code><a title="graphony.graph.Graph.sql" href="#graphony.graph.Graph.sql">sql</a></code></li>
 </ul>
 </li>

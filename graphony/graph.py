@@ -5,7 +5,6 @@ import csv
 from functools import lru_cache
 from pickle import dumps, loads
 
-from pygraphblas.gviz import draw_graph
 import psycopg2 as pg
 
 from .util import query
@@ -89,24 +88,6 @@ class Graph:
             c.execute(sql_code)
             return c.fetchall()
 
-    def add(self, relation, source, destination, weight=True):
-        """Add an edge to the graph with an optional weight."""
-        if not relation.isidentifier() or relation.startswith("_"):
-            assert NameError(
-                "relation name must start with a letter, "
-                "and can only contain letters, numbers, and underscores"
-            )
-
-        rel = getattr(self, relation)
-
-        if isinstance(source, str):
-            source = Node(self, source)
-
-        if isinstance(destination, str):
-            destination = Node(self, destination)
-
-        rel.add(source, destination, weight)
-
     def add_relation(self, name, weight_type=None, incidence=False):
         """Add a new relation"""
         rid = self._upsert_relation(name, dumps(weight_type))
@@ -121,16 +102,6 @@ class Graph:
         if n_id is None:
             raise KeyError(key)
         return n_id
-
-    def __iadd__(self, relation):
-        if isinstance(relation, tuple):
-            self.add(*relation)
-        elif isinstance(relation, Graph):
-            raise TypeError("todo")
-        else:
-            for i in relation:
-                self.add(*i)
-        return self
 
     def __len__(self):
         """Returns the number of triples in the graph."""
@@ -237,12 +208,6 @@ class Graph:
             for rid, rel in self.relations.items():
                 for edge in rel:
                     yield edge
-
-    def draw(self, name, *args, **kwargs):
-        rid = self._get_relation_id(name)
-        adj = self.relations[rid]()
-        names = {i: self._get_node_name(i) for i in set(adj.rows) | set(adj.cols)}
-        return draw_graph(adj, label_vector=names, *args, **kwargs)
 
 
 def read_csv(graph, fname, encoding="utf8", **kw):

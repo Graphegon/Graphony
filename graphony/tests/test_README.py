@@ -21,7 +21,7 @@ def _phm_setup_doctest_teardown(doctest_namespace, managenamespace):
     for k, v in additions.items():
         doctest_namespace[k] = v
     yield
-    # teardown code line 285.
+    # teardown code line 289.
     postgresql.teardown(pgdata)
 
     managenamespace(operation="clear")
@@ -51,8 +51,8 @@ def session_00001_line_114():
 
 def session_00002_line_120():
     r"""
-    >>> G += ('friend', 'bob', 'alice')
-    >>> G.draw('friend', show_weight=False, filename='docs/imgs/G_friend_1')
+    >>> G.friend += ('bob', 'alice')
+    >>> G.friend.draw(show_weight=False, filename='docs/imgs/G_friend_1')
     <graphviz.dot.Digraph object at ...>
     """
 
@@ -62,8 +62,8 @@ def session_00003_line_131():
     >>> jane = Node(G, 'jane', favorite_color='blue')
     >>> jane.props
     {'favorite_color': 'blue'}
-    >>> G += ('friend', 'alice', jane)
-    >>> G.draw('friend', show_weight=False, filename='docs/imgs/G_friend_2')
+    >>> G.friend += ('alice', jane)
+    >>> G.friend.draw(show_weight=False, filename='docs/imgs/G_friend_2')
     <graphviz.dot.Digraph object at ...>
     """
 
@@ -77,8 +77,8 @@ def session_00004_line_144():
 
 def session_00005_line_151():
     r"""
-    >>> G += [('friend', 'bob', 'sal'), ('friend', 'alice', 'rick')]
-    >>> G.draw('friend', show_weight=False, filename='docs/imgs/G_friend_3')
+    >>> G.friend += [('bob', 'sal'), ('alice', 'rick')]
+    >>> G.friend.draw(show_weight=False, filename='docs/imgs/G_friend_3')
     <graphviz.dot.Digraph object at ...>
     """
 
@@ -86,11 +86,11 @@ def session_00005_line_151():
 def session_00006_line_164():
     r"""
     >>> G.add_relation('coworker', incidence=True)
-    >>> G += [('coworker', 'bob', 'jane'), ('coworker', 'alice', 'jane')]
+    >>> G.coworker += [('bob', 'jane'), ('alice', 'jane')]
 
     >>> G.add_relation('distance', int)
-    >>> G += [('distance', 'chicago', 'seattle', 422),
-    ...       ('distance', 'seattle', 'portland', 42)]
+    >>> G.distance += [('chicago', 'seattle', 422),
+    ...                ('seattle', 'portland', 42)]
     """
 
 
@@ -159,20 +159,22 @@ def session_00012_line_234():
 def session_00013_line_263():
     r"""
     >>> G.add_relation('karate')
-    >>> G += G.sql(
-    ...  "select 'karate', 'karate_' || s_id, 'karate_' || d_id "
+    >>> G.karate += G.sql(
+    ...  "select 'karate_' || s_id, 'karate_' || d_id "
     ...  "from graphony.karate")
+    >>> G.karate.draw(show_weight=False, filename='docs/imgs/G_karate_1')
+    <graphviz.dot.Digraph object at ...>
     """
 
 
-def session_00014_line_273():
+def session_00014_line_277():
     r"""
     >>> len(G.karate)
     78
     """
 
 
-def session_00015_line_279():
+def session_00015_line_283():
     r"""
     >>> G
     <Graph [friend, coworker, distance, karate]: 86>

@@ -30,8 +30,10 @@
 <pre><code class="python">&#34;&#34;&#34;Relation objects.
 &#34;&#34;&#34;
 from pygraphblas import Matrix, BOOL, INT64
+from pygraphblas.gviz import draw_graph
 
 from .edge import Edge
+from .node import Node
 
 
 class Relation:
@@ -61,8 +63,14 @@ class Relation:
             self.A = Matrix.sparse(weight_type)
             self.B = None
 
-    def add(self, source, destination, weight, eid=None, A_weight=True):
+    def add(self, source, destination, weight=True, eid=None, A_weight=True):
         &#34;&#34;&#34;Add an edge to this relation.&#34;&#34;&#34;
+        if isinstance(source, str):
+            source = Node(self.graph, source)
+
+        if isinstance(destination, str):
+            destination = Node(self.graph, destination)
+
         if self.incidence:
             if eid is None:
                 eid = self.graph._new_edge()
@@ -71,6 +79,19 @@ class Relation:
             self.B[eid, destination.n_id] = weight
         else:
             self.A[source.n_id, destination.n_id] = weight
+
+    def draw(self, *args, **kwargs):
+        adj = self()
+        names = {i: self.graph._get_node_name(i) for i in set(adj.rows) | set(adj.cols)}
+        return draw_graph(adj, label_vector=names, *args, **kwargs)
+
+    def __iadd__(self, relation):
+        if isinstance(relation, tuple):
+            self.add(*relation)
+        else:
+            for i in relation:
+                self.add(*i)
+        return self
 
     def __call__(self, *args, semiring=None, **kwargs):
         if not self.incidence:
@@ -159,8 +180,14 @@ class Relation:
             self.A = Matrix.sparse(weight_type)
             self.B = None
 
-    def add(self, source, destination, weight, eid=None, A_weight=True):
+    def add(self, source, destination, weight=True, eid=None, A_weight=True):
         &#34;&#34;&#34;Add an edge to this relation.&#34;&#34;&#34;
+        if isinstance(source, str):
+            source = Node(self.graph, source)
+
+        if isinstance(destination, str):
+            destination = Node(self.graph, destination)
+
         if self.incidence:
             if eid is None:
                 eid = self.graph._new_edge()
@@ -169,6 +196,19 @@ class Relation:
             self.B[eid, destination.n_id] = weight
         else:
             self.A[source.n_id, destination.n_id] = weight
+
+    def draw(self, *args, **kwargs):
+        adj = self()
+        names = {i: self.graph._get_node_name(i) for i in set(adj.rows) | set(adj.cols)}
+        return draw_graph(adj, label_vector=names, *args, **kwargs)
+
+    def __iadd__(self, relation):
+        if isinstance(relation, tuple):
+            self.add(*relation)
+        else:
+            for i in relation:
+                self.add(*i)
+        return self
 
     def __call__(self, *args, semiring=None, **kwargs):
         if not self.incidence:
@@ -219,7 +259,7 @@ class Relation:
 <h3 class="caret">Methods</h3>
 <dl class="nested active">
 <dt id="graphony.relation.Relation.add"><code class="name flex">
-<span>def <span class="ident">add</span></span>(<span>self, source, destination, weight, eid=None, A_weight=True)</span>
+<span>def <span class="ident">add</span></span>(<span>self, source, destination, weight=True, eid=None, A_weight=True)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Add an edge to this relation.</p></div>
@@ -227,8 +267,14 @@ class Relation:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def add(self, source, destination, weight, eid=None, A_weight=True):
+<pre><code class="python">def add(self, source, destination, weight=True, eid=None, A_weight=True):
     &#34;&#34;&#34;Add an edge to this relation.&#34;&#34;&#34;
+    if isinstance(source, str):
+        source = Node(self.graph, source)
+
+    if isinstance(destination, str):
+        destination = Node(self.graph, destination)
+
     if self.incidence:
         if eid is None:
             eid = self.graph._new_edge()
@@ -237,6 +283,21 @@ class Relation:
         self.B[eid, destination.n_id] = weight
     else:
         self.A[source.n_id, destination.n_id] = weight</code></pre>
+</details>
+</dd>
+<dt id="graphony.relation.Relation.draw"><code class="name flex">
+<span>def <span class="ident">draw</span></span>(<span>self, *args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def draw(self, *args, **kwargs):
+    adj = self()
+    names = {i: self.graph._get_node_name(i) for i in set(adj.rows) | set(adj.cols)}
+    return draw_graph(adj, label_vector=names, *args, **kwargs)</code></pre>
 </details>
 </dd>
 </dl>
@@ -268,6 +329,7 @@ class Relation:
 <code class="caret"><a title="graphony.relation.Relation" href="#graphony.relation.Relation">Relation</a></code>
 <ul class=" nested ">
 <li><code><a title="graphony.relation.Relation.add" href="#graphony.relation.Relation.add">add</a></code></li>
+<li><code><a title="graphony.relation.Relation.draw" href="#graphony.relation.Relation.draw">draw</a></code></li>
 </ul>
 </li>
 </ul>

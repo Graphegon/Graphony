@@ -1,8 +1,10 @@
 """Relation objects.
 """
 from pygraphblas import Matrix, BOOL, INT64
+from pygraphblas.gviz import draw_graph
 
 from .edge import Edge
+from .node import Node
 
 
 class Relation:
@@ -32,8 +34,14 @@ class Relation:
             self.A = Matrix.sparse(weight_type)
             self.B = None
 
-    def add(self, source, destination, weight, eid=None, A_weight=True):
+    def add(self, source, destination, weight=True, eid=None, A_weight=True):
         """Add an edge to this relation."""
+        if isinstance(source, str):
+            source = Node(self.graph, source)
+
+        if isinstance(destination, str):
+            destination = Node(self.graph, destination)
+
         if self.incidence:
             if eid is None:
                 eid = self.graph._new_edge()
@@ -42,6 +50,19 @@ class Relation:
             self.B[eid, destination.n_id] = weight
         else:
             self.A[source.n_id, destination.n_id] = weight
+
+    def draw(self, *args, **kwargs):
+        adj = self()
+        names = {i: self.graph._get_node_name(i) for i in set(adj.rows) | set(adj.cols)}
+        return draw_graph(adj, label_vector=names, *args, **kwargs)
+
+    def __iadd__(self, relation):
+        if isinstance(relation, tuple):
+            self.add(*relation)
+        else:
+            for i in relation:
+                self.add(*i)
+        return self
 
     def __call__(self, *args, semiring=None, **kwargs):
         if not self.incidence:
