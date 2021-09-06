@@ -168,10 +168,10 @@ To create edges of a certain type, 4 elements can be provided:
 
 >>> G.add_relation('distance', int)
 >>> G.distance += [('bob', 'alice', 422), ('alice', 'jane', 42)]
->>> G.distance.draw(show_weight=True, filename='docs/imgs/G_distance_1')
+>>> G.distance.draw(show_weight=True, filename='docs/imgs/G_distance_2')
 <graphviz.dot.Digraph object at ...>
 ```
-![G_distance_1.png](docs/imgs/G_distance_1.png)
+![G_distance_2.png](docs/imgs/G_distance_2.png)
 
 ## Graph Querying
 

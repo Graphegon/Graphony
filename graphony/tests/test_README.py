@@ -92,7 +92,7 @@ def session_00006_line_166():
 
     >>> G.add_relation('distance', int)
     >>> G.distance += [('bob', 'alice', 422), ('alice', 'jane', 42)]
-    >>> G.distance.draw(show_weight=True, filename='docs/imgs/G_distance_1')
+    >>> G.distance.draw(show_weight=True, filename='docs/imgs/G_distance_2')
     <graphviz.dot.Digraph object at ...>
     """
 
