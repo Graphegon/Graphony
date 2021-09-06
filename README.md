@@ -1,8 +1,20 @@
 # Graphony: Hypersparse Hypergraphs
 
 Graphony is a Python library for doing high-performance graph analysis
-using the GraphBLAS over sparse and hypersparse data sets.  Graphs can
-be:
+using the GraphBLAS over sparse and hypersparse data sets.  
+
+Graphony uses
+[pygraphblas](https://graphegon.github.io/pygraphblas/pygraphblas/index.html)
+to store graph data in sparse [GraphBLAS
+Matrices](http://graphblas.org) and node and edge properties in
+[PostgreSQL](https://postgresql.org).
+
+Graphony's primary role is to easily construnct graph matrices and
+manage symbolic names and properties for graphs, nodes, relations and
+edges, and can be used to easily construct, save and manage graph data
+in a simple project directory format.
+
+Graphs can be:
 
   - [Simple](https://en.wikipedia.org/wiki/Graph_(discrete_mathematics)#Graph):
     an edge connects one source to one destination.
@@ -18,16 +30,6 @@ be:
     Graph](http://graphdatamodeling.com/Graph%20Data%20Modeling/GraphDataModeling/page/PropertyGraphs.html):
     Nodes and and Edges can have arbitrary JSON properties.
 
-Graphony uses
-[pygraphblas](https://graphegon.github.io/pygraphblas/pygraphblas/index.html)
-to store graph data in sparse [GraphBLAS
-Matrices](http://graphblas.org) and node and edge properties in
-[PostgreSQL](https://postgresql.org).
-
-Graphony's primary role is to easily construct graph matrices and
-manage symbolic names and properties for graphs, nodes, relations and
-edges, and can be used to easily construct, save and manage data in a
-simple project directory format.
 
 # Introduction
 
@@ -99,27 +101,31 @@ Graphony consists of four concepts:
     
   - Node: A node in the graph.
 
-## Accumulating Edges
+## Simple Graphs
 
-Relation tuples can be added directly into the Graph with the `+=`
-method.  In their simplest form, a relation is a Python tuple with 3
-elements, a relation name, a source name, and a destination name:
+Edges can be added directly into the Graph with the `+=` method.  In
+their simplest form, an edge is a Python tuple with 3 elements, a
+relation name, a source name, and a destination name:
 
-Before you can add an edge to a relation, it must be declared first.
+Before you can add an edge, a relation to hold it must be declared
+first.
 
 ```python3
->>> G.relation('friend')
+>>> G.add_relation('friend')
 ```
 
 Now edges in that relation can be added to the graph:
 
 ```python3
 >>> G += ('friend', 'bob', 'alice')
+>>> G.draw('friend', filename='docs/imgs/G_friend_1')
+<graphviz.dot.Digraph object at ...>
 ```
+![G_friend_1.png](docs/imgs/G_friend_1.png)
 
-Strings like `'bob'` and `'alice'` as edge endpoints create new
-graph nodes automatically.  You can also create a node explicity
-and provide properties for that node as well.
+Using strings like `'bob'` and `'alice'` as edge endpoints creates new
+graph nodes automatically.  You can also create nodes explicity and
+provide properties for them:
 
 ```python3
 >>> jane = Node(G, 'jane', favorite_color='blue')
@@ -137,7 +143,7 @@ alice and the other from alice to jane.
 An iterator of relation tuples can also be provided:
 
 ```python3
->>> G.relation('coworker', incidence=True)
+>>> G.add_relation('coworker', incidence=True)
 >>> G += [('coworker', 'bob', 'jane'), ('coworker', 'alice', 'jane')]
 ```
 
@@ -148,14 +154,13 @@ ommited.
 To create edges of a certain type, 4 elements can be provided:
 
 ```python3
->>> G.relation('distance', int)
+>>> G.add_relation('distance', int)
 >>> G += [('distance', 'chicago', 'seattle', 422),
 ...       ('distance', 'seattle', 'portland', 42)]
->>> from pygraphblas.gviz import draw_graph
->>> draw_graph(G.friend.A, filename='docs/imgs/G_friend_A')
+>>> G.draw('friend', filename='docs/imgs/G_friend_2')
 <graphviz.dot.Digraph object at ...>
 ```
-![G_friend_A.png](docs/imgs/G_friend_A.png)
+![G_friend_2.png](docs/imgs/G_friend_2.png)
 
 
 ## Graph Querying
@@ -254,7 +259,7 @@ produces 3 or 4 columns can be used to produce edges into the
 graph.
 
 ```python3
->>> G.relation('karate')
+>>> G.add_relation('karate')
 >>> G += G.sql(
 ...  "select 'karate', 'karate_' || s_id, 'karate_' || d_id "
 ...  "from graphony.karate")

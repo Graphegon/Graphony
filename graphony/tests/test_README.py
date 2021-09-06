@@ -6,7 +6,7 @@ from phmdoctest.fixture import managenamespace
 
 @pytest.fixture(scope="module")
 def _phm_setup_doctest_teardown(doctest_namespace, managenamespace):
-    # setup code line 76.
+    # setup code line 78.
     import pprint
     import postgresql
     from graphony import Graph, Node
@@ -21,7 +21,7 @@ def _phm_setup_doctest_teardown(doctest_namespace, managenamespace):
     for k, v in additions.items():
         doctest_namespace[k] = v
     yield
-    # teardown code line 279.
+    # teardown code line 284.
     postgresql.teardown(pgdata)
 
     managenamespace(operation="clear")
@@ -43,51 +43,52 @@ def session_00000():
     """
 
 
-def session_00001_line_111():
+def session_00001_line_114():
     r"""
-    >>> G.relation('friend')
+    >>> G.add_relation('friend')
     """
 
 
-def session_00002_line_117():
+def session_00002_line_120():
     r"""
     >>> G += ('friend', 'bob', 'alice')
+    >>> G.draw('friend', filename='docs/imgs/G_friend_1')
+    <graphviz.dot.Digraph object at ...>
     """
 
 
-def session_00003_line_125():
+def session_00003_line_131():
     r"""
     >>> jane = Node(G, 'jane', favorite_color='blue')
     >>> G += ('friend', 'alice', jane)
     """
 
 
-def session_00004_line_133():
+def session_00004_line_139():
     r"""
     >>> p(G)
     [(friend, bob, alice, True), (friend, alice, jane, True)]
     """
 
 
-def session_00005_line_140():
+def session_00005_line_146():
     r"""
-    >>> G.relation('coworker', incidence=True)
+    >>> G.add_relation('coworker', incidence=True)
     >>> G += [('coworker', 'bob', 'jane'), ('coworker', 'alice', 'jane')]
     """
 
 
-def session_00006_line_151():
+def session_00006_line_157():
     r"""
-    >>> G.relation('distance', int)
+    >>> G.add_relation('distance', int)
     >>> G += [('distance', 'chicago', 'seattle', 422),
     ...       ('distance', 'seattle', 'portland', 42)]
-    >>> from pygraphblas.gviz import draw_graph
-    >>> draw_graph(G.friend.A, filename='docs/imgs/G_friend_A')
+    >>> G.draw('friend', filename='docs/imgs/G_friend_2')
     <graphviz.dot.Digraph object at ...>
     """
 
 
-def session_00007_line_169():
+def session_00007_line_174():
     r"""
     >>> p(G())
     [(friend, bob, alice, True),
@@ -99,21 +100,21 @@ def session_00007_line_169():
     """
 
 
-def session_00008_line_181():
+def session_00008_line_186():
     r"""
     >>> p(G(source='bob'))
     [(friend, bob, alice, True), (coworker, bob, jane, True)]
     """
 
 
-def session_00009_line_188():
+def session_00009_line_193():
     r"""
     >>> p(G(relation='coworker'))
     [(coworker, bob, jane, True), (coworker, alice, jane, True)]
     """
 
 
-def session_00010_line_195():
+def session_00010_line_200():
     r"""
     >>> p(G(destination='jane'))
     [(friend, alice, jane, True),
@@ -125,7 +126,7 @@ def session_00010_line_195():
     """
 
 
-def session_00011_line_208():
+def session_00011_line_213():
     r"""
     >>> p(G)
     [(friend, bob, alice, True),
@@ -137,7 +138,7 @@ def session_00011_line_208():
     """
 
 
-def session_00012_line_221():
+def session_00012_line_226():
     r"""
     >>> G.friend
     <Adjacency friend BOOL:2>
@@ -147,30 +148,30 @@ def session_00012_line_221():
     """
 
 
-def session_00013_line_231():
+def session_00013_line_236():
     r"""
     >>> p(list(G.friend))
     [(friend, bob, alice, True), (friend, alice, jane, True)]
     """
 
 
-def session_00014_line_257():
+def session_00014_line_262():
     r"""
-    >>> G.relation('karate')
+    >>> G.add_relation('karate')
     >>> G += G.sql(
     ...  "select 'karate', 'karate_' || s_id, 'karate_' || d_id "
     ...  "from graphony.karate")
     """
 
 
-def session_00015_line_267():
+def session_00015_line_272():
     r"""
     >>> len(G.karate)
     78
     """
 
 
-def session_00016_line_273():
+def session_00016_line_278():
     r"""
     >>> G
     <Graph [friend, coworker, distance, karate]: 84>

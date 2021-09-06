@@ -5,6 +5,7 @@ import csv
 from functools import lru_cache
 from pickle import dumps, loads
 
+from pygraphblas.gviz import draw_graph
 import psycopg2 as pg
 
 from .util import query
@@ -106,7 +107,7 @@ class Graph:
 
         rel.add(source, destination, weight)
 
-    def relation(self, name, weight_type=None, incidence=False):
+    def add_relation(self, name, weight_type=None, incidence=False):
         """Add a new relation"""
         rid = self._upsert_relation(name, dumps(weight_type))
         rel = Relation(self, rid, name, weight_type, incidence)
@@ -236,6 +237,12 @@ class Graph:
             for rid, rel in self.relations.items():
                 for edge in rel:
                     yield edge
+
+    def draw(self, name, *args, **kwargs):
+        rid = self._get_relation_id(name)
+        adj = self.relations[rid]()
+        names = {i: self._get_node_name(i) for i in set(adj.rows) | set(adj.cols)}
+        return draw_graph(adj, label_vector=names, *args, **kwargs)
 
 
 def read_csv(graph, fname, encoding="utf8", **kw):

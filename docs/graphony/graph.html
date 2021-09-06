@@ -34,6 +34,7 @@ import csv
 from functools import lru_cache
 from pickle import dumps, loads
 
+from pygraphblas.gviz import draw_graph
 import psycopg2 as pg
 
 from .util import query
@@ -135,7 +136,7 @@ class Graph:
 
         rel.add(source, destination, weight)
 
-    def relation(self, name, weight_type=None, incidence=False):
+    def add_relation(self, name, weight_type=None, incidence=False):
         &#34;&#34;&#34;Add a new relation&#34;&#34;&#34;
         rid = self._upsert_relation(name, dumps(weight_type))
         rel = Relation(self, rid, name, weight_type, incidence)
@@ -265,6 +266,12 @@ class Graph:
             for rid, rel in self.relations.items():
                 for edge in rel:
                     yield edge
+
+    def draw(self, name, *args, **kwargs):
+        rid = self._get_relation_id(name)
+        adj = self.relations[rid]()
+        names = {i: self._get_node_name(i) for i in set(adj.rows) | set(adj.cols)}
+        return draw_graph(adj, label_vector=names, *args, **kwargs)
 
 
 def read_csv(graph, fname, encoding=&#34;utf8&#34;, **kw):
@@ -384,7 +391,7 @@ def read_csv(graph, fname, encoding=&#34;utf8&#34;, **kw):
 
         rel.add(source, destination, weight)
 
-    def relation(self, name, weight_type=None, incidence=False):
+    def add_relation(self, name, weight_type=None, incidence=False):
         &#34;&#34;&#34;Add a new relation&#34;&#34;&#34;
         rid = self._upsert_relation(name, dumps(weight_type))
         rel = Relation(self, rid, name, weight_type, incidence)
@@ -513,7 +520,13 @@ def read_csv(graph, fname, encoding=&#34;utf8&#34;, **kw):
         else:  # None,None,None
             for rid, rel in self.relations.items():
                 for edge in rel:
-                    yield edge</code></pre>
+                    yield edge
+
+    def draw(self, name, *args, **kwargs):
+        rid = self._get_relation_id(name)
+        adj = self.relations[rid]()
+        names = {i: self._get_node_name(i) for i in set(adj.rows) | set(adj.cols)}
+        return draw_graph(adj, label_vector=names, *args, **kwargs)</code></pre>
 </details>
 <h3 class="caret">Methods</h3>
 <dl class="nested active">
@@ -561,8 +574,8 @@ def read_csv(graph, fname, encoding=&#34;utf8&#34;, **kw):
     rel.add(source, destination, weight)</code></pre>
 </details>
 </dd>
-<dt id="graphony.graph.Graph.relation"><code class="name flex">
-<span>def <span class="ident">relation</span></span>(<span>self, name, weight_type=None, incidence=False)</span>
+<dt id="graphony.graph.Graph.add_relation"><code class="name flex">
+<span>def <span class="ident">add_relation</span></span>(<span>self, name, weight_type=None, incidence=False)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Add a new relation</p></div>
@@ -570,11 +583,27 @@ def read_csv(graph, fname, encoding=&#34;utf8&#34;, **kw):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def relation(self, name, weight_type=None, incidence=False):
+<pre><code class="python">def add_relation(self, name, weight_type=None, incidence=False):
     &#34;&#34;&#34;Add a new relation&#34;&#34;&#34;
     rid = self._upsert_relation(name, dumps(weight_type))
     rel = Relation(self, rid, name, weight_type, incidence)
     self.relations[rid] = rel</code></pre>
+</details>
+</dd>
+<dt id="graphony.graph.Graph.draw"><code class="name flex">
+<span>def <span class="ident">draw</span></span>(<span>self, name, *args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def draw(self, name, *args, **kwargs):
+    rid = self._get_relation_id(name)
+    adj = self.relations[rid]()
+    names = {i: self._get_node_name(i) for i in set(adj.rows) | set(adj.cols)}
+    return draw_graph(adj, label_vector=names, *args, **kwargs)</code></pre>
 </details>
 </dd>
 </dl>
@@ -633,7 +662,8 @@ def read_csv(graph, fname, encoding=&#34;utf8&#34;, **kw):
 <code class="caret"><a title="graphony.graph.Graph" href="#graphony.graph.Graph">Graph</a></code>
 <ul class=" nested ">
 <li><code><a title="graphony.graph.Graph.add" href="#graphony.graph.Graph.add">add</a></code></li>
-<li><code><a title="graphony.graph.Graph.relation" href="#graphony.graph.Graph.relation">relation</a></code></li>
+<li><code><a title="graphony.graph.Graph.add_relation" href="#graphony.graph.Graph.add_relation">add_relation</a></code></li>
+<li><code><a title="graphony.graph.Graph.draw" href="#graphony.graph.Graph.draw">draw</a></code></li>
 <li><code><a title="graphony.graph.Graph.sql" href="#graphony.graph.Graph.sql">sql</a></code></li>
 </ul>
 </li>
