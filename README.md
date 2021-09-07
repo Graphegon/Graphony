@@ -120,7 +120,7 @@ Now edges in that relation can be added to the graph:
 
 ```python3
 >>> G.friend += ('bob', 'alice')
->>> G.friend.draw(show_weight=False, filename='docs/imgs/G_friend_1')
+>>> G.friend.draw(weights=False, filename='docs/imgs/G_friend_1')
 <graphviz.dot.Digraph object at ...>
 ```
 ![G_friend_1.png](docs/imgs/G_friend_1.png)
@@ -134,7 +134,7 @@ provide properties for them:
 >>> jane.props
 {'favorite_color': 'blue'}
 >>> G.friend += ('alice', jane)
->>> G.friend.draw(show_weight=False, filename='docs/imgs/G_friend_2')
+>>> G.friend.draw(weights=False, filename='docs/imgs/G_friend_2')
 <graphviz.dot.Digraph object at ...>
 ```
 ![G_friend_2.png](docs/imgs/G_friend_2.png)
@@ -151,7 +151,7 @@ An iterator of relation tuples can also be provided:
 
 ```python3
 >>> G.friend += [('bob', 'sal'), ('alice', 'rick')]
->>> G.friend.draw(show_weight=False, filename='docs/imgs/G_friend_3')
+>>> G.friend.draw(weights=False, filename='docs/imgs/G_friend_3')
 <graphviz.dot.Digraph object at ...>
 ```
 ![G_friend_3.png](docs/imgs/G_friend_3.png)
@@ -168,7 +168,7 @@ To create edges of a certain type, 4 elements can be provided:
 
 >>> G.add_relation('distance', int)
 >>> G.distance += [('bob', 'alice', 422), ('alice', 'jane', 42)]
->>> G.distance.draw(show_weight=True, filename='docs/imgs/G_distance_2')
+>>> G.distance.draw(weights=True, filename='docs/imgs/G_distance_2')
 <graphviz.dot.Digraph object at ...>
 ```
 ![G_distance_2.png](docs/imgs/G_distance_2.png)
@@ -271,7 +271,7 @@ graph.
 >>> G.karate += G.sql(
 ...  "select 'k_' || s_id, 'k_' || d_id "
 ...  "from graphony.karate")
->>> G.karate.draw(show_weight=False, filename='docs/imgs/G_karate_3',
+>>> G.karate.draw(weights=False, filename='docs/imgs/G_karate_3',
 ...               directed=False, graph_attr=dict(layout='sfdp'))
 <graphviz.dot.Graph object at ...>
 ```

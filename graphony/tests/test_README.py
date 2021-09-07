@@ -54,7 +54,7 @@ def session_00001_line_116():
 def session_00002_line_122():
     r"""
     >>> G.friend += ('bob', 'alice')
-    >>> G.friend.draw(show_weight=False, filename='docs/imgs/G_friend_1')
+    >>> G.friend.draw(weights=False, filename='docs/imgs/G_friend_1')
     <graphviz.dot.Digraph object at ...>
     """
 
@@ -65,7 +65,7 @@ def session_00003_line_133():
     >>> jane.props
     {'favorite_color': 'blue'}
     >>> G.friend += ('alice', jane)
-    >>> G.friend.draw(show_weight=False, filename='docs/imgs/G_friend_2')
+    >>> G.friend.draw(weights=False, filename='docs/imgs/G_friend_2')
     <graphviz.dot.Digraph object at ...>
     """
 
@@ -80,7 +80,7 @@ def session_00004_line_146():
 def session_00005_line_153():
     r"""
     >>> G.friend += [('bob', 'sal'), ('alice', 'rick')]
-    >>> G.friend.draw(show_weight=False, filename='docs/imgs/G_friend_3')
+    >>> G.friend.draw(weights=False, filename='docs/imgs/G_friend_3')
     <graphviz.dot.Digraph object at ...>
     """
 
@@ -92,7 +92,7 @@ def session_00006_line_166():
 
     >>> G.add_relation('distance', int)
     >>> G.distance += [('bob', 'alice', 422), ('alice', 'jane', 42)]
-    >>> G.distance.draw(show_weight=True, filename='docs/imgs/G_distance_2')
+    >>> G.distance.draw(weights=True, filename='docs/imgs/G_distance_2')
     <graphviz.dot.Digraph object at ...>
     """
 
@@ -166,7 +166,7 @@ def session_00013_line_270():
     >>> G.karate += G.sql(
     ...  "select 'k_' || s_id, 'k_' || d_id "
     ...  "from graphony.karate")
-    >>> G.karate.draw(show_weight=False, filename='docs/imgs/G_karate_3',
+    >>> G.karate.draw(weights=False, filename='docs/imgs/G_karate_3',
     ...               directed=False, graph_attr=dict(layout='sfdp'))
     <graphviz.dot.Graph object at ...>
     """
