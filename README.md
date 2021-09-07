@@ -238,7 +238,7 @@ Relations can be iterated directly:
 ```python3
 >>> p(list(G.friend))
 [friend(bob, alice), friend(bob, sal), friend(alice, jane), friend(alice, rick)]
->>> G.draw(weights=True, filename='docs/imgs/G_all_1', graph_attr=dict(layout='sfdp'))
+>>> G.draw(weights=True, filename='docs/imgs/G_all_1', graph_attr=dict(layout='dot'))
 <graphviz.dot.Digraph object at ...>
 
 ```
