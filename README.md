@@ -238,7 +238,12 @@ Relations can be iterated directly:
 ```python3
 >>> p(list(G.friend))
 [friend(bob, alice), friend(bob, sal), friend(alice, jane), friend(alice, rick)]
+>>> G.draw(weights=True, filename='docs/imgs/G_all_1')
+<graphviz.dot.Digraph object at ...>
+
 ```
+![G_all_1.png](docs/imgs/G_all_1.png)
+
 
 ## Graph Algorithms
 

@@ -51,10 +51,13 @@ class Relation:
         else:
             self.A[source.n_id, destination.n_id] = weight
 
-    def draw(self, *args, **kwargs):
+    def draw(self, **kwargs):
         adj = self()
-        names = {i: self.graph._get_node_name(i) for i in set(adj.rows) | set(adj.cols)}
-        return draw_graph(adj, label_vector=names, *args, **kwargs)
+        if "label_vector" not in kwargs:
+            kwargs["label_vector"] = {
+                i: self.graph._get_node_name(i) for i in set(adj.rows) | set(adj.cols)
+            }
+        return draw_graph(adj, **kwargs)
 
     def __iadd__(self, relation):
         if isinstance(relation, tuple):
@@ -64,13 +67,13 @@ class Relation:
                 self.add(*i)
         return self
 
-    def __call__(self, *args, semiring=None, **kwargs):
+    def __call__(self, semiring=None, **kwargs):
         if not self.incidence:
             return self.A
 
         if semiring is None:
             semiring = INT64.any_secondi
-        return semiring(self.A, self.B, *args, **kwargs)
+        return semiring(self.A, self.B, **kwargs)
 
     def __iter__(self):
         if self.incidence:

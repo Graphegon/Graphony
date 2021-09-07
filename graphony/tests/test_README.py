@@ -23,7 +23,7 @@ def _phm_setup_doctest_teardown(doctest_namespace, managenamespace):
     for k, v in additions.items():
         doctest_namespace[k] = v
     yield
-    # teardown code line 290.
+    # teardown code line 295.
     postgresql.teardown(pgdata)
 
     managenamespace(operation="clear")
@@ -154,10 +154,13 @@ def session_00012_line_239():
     r"""
     >>> p(list(G.friend))
     [friend(bob, alice), friend(bob, sal), friend(alice, jane), friend(alice, rick)]
+    >>> G.draw(weights=True, filename='docs/imgs/G_all_1')
+    <graphviz.dot.Digraph object at ...>
+
     """
 
 
-def session_00013_line_265():
+def session_00013_line_270():
     r"""
     >>> G.add_relation('karate')
     >>> G.karate += G.sql(
@@ -169,14 +172,14 @@ def session_00013_line_265():
     """
 
 
-def session_00014_line_279():
+def session_00014_line_284():
     r"""
     >>> len(G.karate)
     78
     """
 
 
-def session_00015_line_283():
+def session_00015_line_288():
     r"""
     >>> G
     <Graph [friend, coworker, distance, karate]: 86>

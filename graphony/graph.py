@@ -209,6 +209,14 @@ class Graph:
                 for edge in rel:
                     yield edge
 
+    def draw(self, **kwargs):
+        g = None
+        for rid in self.relations:
+            rel = self.relations[rid]
+            kwargs["weight_prefix"] = f"{rel.name}: "
+            g = rel.draw(g=g, **kwargs)
+        return g
+
 
 def read_csv(graph, fname, encoding="utf8", **kw):
     """Read a csv file and accuulate it into a graph"""
