@@ -48,8 +48,6 @@ same nodes, and multiple nodes can connect the same edges.  In either
 case the edge weights can be any of the standard GraphBLAS types, or a
 User Defined Type.
 
-![An incidence matrix](./docs/imgs/Incidence.png)
-
 It's usually helpful to be able to project a pair of incidence
 matrices to an adjacency matrix using matrix multiplication.  This
 "collapses" a hypergraph into a regular directed graph with simple
