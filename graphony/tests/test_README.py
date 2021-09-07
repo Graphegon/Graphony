@@ -154,7 +154,7 @@ def session_00012_line_239():
     r"""
     >>> p(list(G.friend))
     [friend(bob, alice), friend(bob, sal), friend(alice, jane), friend(alice, rick)]
-    >>> G.draw(weights=True, filename='docs/imgs/G_all_1', graph_attr=dict(layout='dot'))
+    >>> G.draw(weights=True, filename='docs/imgs/G_all_1')
     <graphviz.dot.Digraph object at ...>
 
     """
