@@ -67,9 +67,11 @@ class Relation:
                 self.add(*i)
         return self
 
-    def __call__(self, semiring=None, **kwargs):
+    def __call__(self, semiring=None, cast=None, **kwargs):
         if not self.incidence:
-            return self.A
+            if cast is None:
+                return self.A
+            return self.A.cast(cast)
 
         if semiring is None:
             semiring = INT64.any_secondi

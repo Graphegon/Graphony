@@ -8,6 +8,7 @@ from .relation import Relation
 from .node import Node
 from .edge import Edge
 from . import graph
+from . import lib
 
 
 def doctest(raise_on_error=False):

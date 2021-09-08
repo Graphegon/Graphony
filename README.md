@@ -77,6 +77,7 @@ import os
 import pprint
 import postgresql
 from pathlib import Path
+from pygraphblas import FP64
 from graphony import Graph, Node
 p = lambda r: pprint.pprint(sorted(list(r)))
 pgdata, conn = postgresql.setup()
@@ -286,7 +287,17 @@ query above:
 >>> G
 <Graph [friend, coworker, distance, karate]: 86>
 
+>>> from graphony.lib import pagerank
+>>> G.add_relation('PR')
+>>> I = "BCDEFDEEFGGHHIIJK"
+>>> J = "CBBBBADFEBEBEBEEE"
+>>> G.PR += zip(I, J)
+>>> rank, iters = pagerank(G.PR(cast=FP64))
+>>> G.PR.draw(weights=False, filename='docs/imgs/G_PR_1', rankdir='BT',
+...           label_vector=rank, label_width=4)
+<graphviz.dot.Digraph object at 0x7fe8918400d0>
 ```
+![G_PR_1.png](docs/imgs/G_PR_1.png)
 
 <!--phmdoctest-teardown-->
 ```python3
