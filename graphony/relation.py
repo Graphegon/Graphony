@@ -117,24 +117,34 @@ class Relation:
     def __getitem__(self, key):
         sid, did = key
         if self.incidence:
+            AT = self.A.T
             if isinstance(did, slice):
                 eids = self.A[sid]
                 for eid, _ in eids:
                     _dids = self.B[eid]
                     dids = list(_dids.indices)
                     weights = list(_dids.vals)
-                    yield Hedge(self.graph, self.rid, [sid], dids, weights, eid)
+                    sids = list(AT[eid].indices)
+                    yield Hedge(self.graph, self.rid, sids, dids, weights, eid)
             elif isinstance(sid, slice):
                 BT = self.B.T
-                AT = self.A.T
                 eids = BT[did]
                 weights = list(eids.vals)
                 for eid, _ in eids:
                     sids = list(AT[eid].indices)
-                    yield Hedge(self.graph, self.rid, sids, [did], weights, eid)
+                    dids = list(self.B[eid].indices)
+                    yield Hedge(self.graph, self.rid, sids, dids, weights, eid)
             else:
-                adj = self.A.any_second(self.B)
-                yield Hedge(self.graph, self.rid, [sid], [did], [adj[sid, did]])
+                BT = self.B.T
+                deids = BT[did]
+                seids = self.A[sid]
+                eids = seids.second(deids)
+                for eid, _ in eids:
+                    sids = list(AT[eid].indices)
+                    _dids = self.B[eid]
+                    dids = list(_dids.indices)
+                    weights = list(_dids.vals)
+                    yield Hedge(self.graph, self.rid, sids, dids, weights, eid)
 
         else:
             if isinstance(did, slice):

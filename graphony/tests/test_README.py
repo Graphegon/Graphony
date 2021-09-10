@@ -24,7 +24,7 @@ def _phm_setup_doctest_teardown(doctest_namespace, managenamespace):
     for k, v in additions.items():
         doctest_namespace[k] = v
     yield
-    # teardown code line 313.
+    # teardown code line 319.
     postgresql.teardown(pgdata)
 
     managenamespace(operation="clear")
@@ -90,7 +90,13 @@ def session_00006_line_171():
     r"""
     >>> G.add_relation('coworker', incidence=True)
     >>> G.coworker += [('bob', ('jane', 'alice')), ('alice', ('bob', 'jane'))]
+    >>> G.coworker.draw(weights=False, filename='docs/imgs/G_coworker_1')
+    <graphviz.dot.Digraph object at ...>
+    """
 
+
+def session_00007_line_180():
+    r"""
     >>> G.add_relation('distance', int)
     >>> G.distance += [('bob', 'alice', 422), ('alice', 'jane', 42)]
     >>> G.distance.draw(weights=True, filename='docs/imgs/G_distance_2')
@@ -98,7 +104,7 @@ def session_00006_line_171():
     """
 
 
-def session_00007_line_189():
+def session_00008_line_195():
     r"""
     >>> p(G())
     [friend(bob, alice),
@@ -112,7 +118,7 @@ def session_00007_line_189():
     """
 
 
-def session_00008_line_201():
+def session_00009_line_207():
     r"""
     >>> p(list(G.friend))
     [friend(bob, alice), friend(bob, sal), friend(alice, jane), friend(alice, rick)]
@@ -123,7 +129,7 @@ def session_00008_line_201():
     """
 
 
-def session_00009_line_213():
+def session_00010_line_219():
     r"""
     >>> p(G(source='bob'))
     [friend(bob, alice),
@@ -133,7 +139,7 @@ def session_00009_line_213():
     """
 
 
-def session_00010_line_223():
+def session_00011_line_229():
     r"""
     >>> p(G(relation='coworker'))
     [coworker((bob), (alice, jane), (True, True)),
@@ -142,19 +148,19 @@ def session_00010_line_223():
     """
 
 
-def session_00011_line_232():
+def session_00012_line_238():
     r"""
     >>> p(G(destination='jane'))
     [friend(alice, jane),
-     coworker((bob), (jane), (True, True)),
-     coworker((alice), (jane), (True, True)),
+     coworker((bob), (alice, jane), (True, True)),
+     coworker((alice), (bob, jane), (True, True)),
      distance(alice, jane, 42)]
     >>> p(G(source='bob', relation='coworker', destination='jane'))
     [coworker((bob), (jane), (True))]
     """
 
 
-def session_00012_line_246():
+def session_00013_line_252():
     r"""
     >>> G.friend
     <Adjacency friend BOOL:4>
@@ -164,7 +170,7 @@ def session_00012_line_246():
     """
 
 
-def session_00013_line_278():
+def session_00014_line_284():
     r"""
     >>> G.add_relation('karate')
     >>> G.karate += G.sql(
@@ -176,14 +182,14 @@ def session_00013_line_278():
     """
 
 
-def session_00014_line_292():
+def session_00015_line_298():
     r"""
     >>> len(G.karate)
     78
     """
 
 
-def session_00015_line_296():
+def session_00016_line_302():
     r"""
     >>> G
     <Graph [friend, coworker, distance, karate]: 88>

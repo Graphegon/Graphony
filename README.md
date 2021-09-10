@@ -170,7 +170,13 @@ To create edges of a certain type, 4 elements can be provided:
 ```python3
 >>> G.add_relation('coworker', incidence=True)
 >>> G.coworker += [('bob', ('jane', 'alice')), ('alice', ('bob', 'jane'))]
+>>> G.coworker.draw(weights=False, filename='docs/imgs/G_coworker_1')
+<graphviz.dot.Digraph object at ...>
+```
+![G_coworker_1.png](docs/imgs/G_coworker_1.png)
 
+
+```python3
 >>> G.add_relation('distance', int)
 >>> G.distance += [('bob', 'alice', 422), ('alice', 'jane', 42)]
 >>> G.distance.draw(weights=True, filename='docs/imgs/G_distance_2')
@@ -231,11 +237,11 @@ Only print relations where `jane` is the dest:
 ```python3
 >>> p(G(destination='jane'))
 [friend(alice, jane),
- coworker((bob), (jane), (True, True)),
- coworker((alice), (jane), (True, True)),
+ coworker((bob), (alice, jane), (True, True)),
+ coworker((alice), (bob, jane), (True, True)),
  distance(alice, jane, 42)]
 >>> p(G(source='bob', relation='coworker', destination='jane'))
-[coworker((bob), (jane), (True))]
+[coworker((bob), (alice, jane), (True, True))]
 ```
 
 Edges can be tested to see if they are contained in the Graph:
