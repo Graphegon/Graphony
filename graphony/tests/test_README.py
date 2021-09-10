@@ -156,7 +156,7 @@ def session_00012_line_238():
      coworker((alice), (bob, jane), (True, True)),
      distance(alice, jane, 42)]
     >>> p(G(source='bob', relation='coworker', destination='jane'))
-    [coworker((bob), (jane), (True))]
+    [coworker((bob), (alice, jane), (True, True))]
     """
 
 

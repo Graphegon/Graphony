@@ -69,7 +69,10 @@ class Relation:
             kwargs["label_vector"] = {
                 i: self.graph._get_node_name(i) for i in set(adj.rows) | set(adj.cols)
             }
-        return draw_graph(adj, **kwargs)
+        if self.incidence:
+            return draw_graph(self.A, B=self.B, **kwargs)
+        else:
+            return draw_graph(self.A, **kwargs)
 
     def __iadd__(self, relation):
         if isinstance(relation, tuple):
