@@ -65,11 +65,15 @@ edge properties are stored in the database.
 
 ## Creating Graphs
 
-To demonstrate, first let's create a helper function `p()` that will
-iterate results into a list and "pretty print" them.  This isn't
-necessary to use Graphony, but is only to help format and verify the
-output of this documentation.  Next, create a new Graph object and
-connect it to a database:
+This documentation is also a runnable Python test called a
+[doctest]().  In order to run and verify this documentation, we must
+first create some helper objects like a function `p()` that will
+iterate results into a list and "pretty print" them.  We also have to
+setup a test PostgreSQL database and initialize it with the base
+Graphony tables.
+
+The core object of Graphony is a `Graph()`. A new Graph can be created
+with a connection string to an existing initialized database:
 
 <!--phmdoctest-setup-->
 ```python3
@@ -85,22 +89,24 @@ postgresql.psql(f'-d "{conn}" -f dbinit/01.sql -f dbinit/02.sql')
 G = Graph(conn)
 ```
 
-Graphony consists of four concepts:
+The `Graph` object `G` is used throughout the following documenation
+to demonstrate the features of Graphony.  A Graphony `Graph` consists
+of four concepts:
 
-  - Graph: Top level object that contains all graph data in
+  - `Graph`: Top level object that contains all graph data in
     sub-graphs called *relations*.
 
-  - Relation: A named, typed sub-graph that holds edges.  A
+  - `Relation`: A named, typed sub-graph that holds edges.  A
     relation consists of two GraphBLAS [Incidence
     Matrices](https://en.wikipedia.org/wiki/Incidence_matrix) that can
     be multiplied to project an adjacency with themselves, or any
     other combination of relations.
 
-  - Edge: Relation edges can be simple point to point edges or
+  - `Edge`: Relation edges can be simple point to point edges or
     hyperedges that represent relations between multiple incoming and
     outgoing nodes.
     
-  - Node: A node in the graph.
+  - `Node`: A node in the graph.
 
 ## Simple Graphs
 
@@ -185,11 +191,21 @@ acts as a wildcard to matches all values.
  friend(bob, sal),
  friend(alice, jane),
  friend(alice, rick),
- coworker(bob, jane),
- coworker(alice, jane),
+ coworker((bob), (jane), (True)),
+ coworker((alice), (jane), (True)),
  distance(bob, alice, 422),
  distance(alice, jane, 42)]
 ```
+
+```python3
+>>> p(list(G.friend))
+[friend(bob, alice), friend(bob, sal), friend(alice, jane), friend(alice, rick)]
+
+>>> G.draw(weights=True, filename='docs/imgs/G_all_1')
+<graphviz.dot.Digraph object at ...>
+
+```
+![G_all_1.png](docs/imgs/G_all_1.png)
 
 Only print relations where `bob` is the src:
 
@@ -197,7 +213,7 @@ Only print relations where `bob` is the src:
 >>> p(G(source='bob'))
 [friend(bob, alice),
  friend(bob, sal),
- coworker(bob, jane),
+ coworker((bob), (jane), (True)),
  distance(bob, alice, 422)]
 ```
 
@@ -205,7 +221,7 @@ Only print relations where `coworker` is the relation:
 
 ```python3
 >>> p(G(relation='coworker'))
-[coworker(bob, jane), coworker(alice, jane)]
+[coworker((bob), (jane), (True)), coworker((alice), (jane), (True))]
 ```
 
 Only print relations where `jane` is the dest:
@@ -213,11 +229,11 @@ Only print relations where `jane` is the dest:
 ```python3
 >>> p(G(destination='jane'))
 [friend(alice, jane),
- coworker(bob, jane),
- coworker(alice, jane),
+ coworker((bob), (jane), (True, True)),
+ coworker((alice), (jane), (True, True)),
  distance(alice, jane, 42)]
 >>> p(G(source='bob', relation='coworker', destination='jane'))
-[coworker(bob, jane)]
+[coworker((bob), (jane), (True))]
 ```
 
 Edges can be tested to see if they are contained in the Graph:
@@ -233,15 +249,6 @@ Relations are accessible as attributes of the graph:
 ```
 
 Relations can be iterated directly:
-
-```python3
->>> p(list(G.friend))
-[friend(bob, alice), friend(bob, sal), friend(alice, jane), friend(alice, rick)]
->>> G.draw(weights=True, filename='docs/imgs/G_all_1')
-<graphviz.dot.Digraph object at ...>
-
-```
-![G_all_1.png](docs/imgs/G_all_1.png)
 
 
 ## Graph Algorithms
@@ -295,7 +302,7 @@ query above:
 >>> rank, iters = pagerank(G.PR(cast=FP64))
 >>> G.PR.draw(weights=False, filename='docs/imgs/G_PR_1', rankdir='BT',
 ...           label_vector=rank, label_width=4)
-<graphviz.dot.Digraph object at 0x7fe8918400d0>
+<graphviz.dot.Digraph object at ...>
 ```
 ![G_PR_1.png](docs/imgs/G_PR_1.png)
 

@@ -19,6 +19,9 @@ class Node:
         self.graph = graph
         self.n_id = n_id
 
+    def __str__(self):
+        return self.name
+
     @property
     @query
     def props(self, curs):

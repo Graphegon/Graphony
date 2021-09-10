@@ -3,7 +3,7 @@
 from pygraphblas import Matrix, BOOL, INT64
 from pygraphblas.gviz import draw_graph
 
-from .edge import Edge
+from .edge import Edge, Hedge
 from .node import Node
 
 
@@ -20,6 +20,7 @@ class Relation:
         weight_type,
         incidence=False,
         incident_A_type=BOOL,
+        shape=(None, None),
     ):
         self.graph = graph
         self.rid = rid
@@ -27,11 +28,13 @@ class Relation:
         self.incidence = incidence
         if weight_type is None:
             weight_type = BOOL
+
+        nrows, ncols = self.shape = shape
         if incidence:
-            self.A = Matrix.sparse(incident_A_type)
-            self.B = Matrix.sparse(weight_type)
+            self.A = Matrix.sparse(incident_A_type, nrows, ncols)
+            self.B = Matrix.sparse(weight_type, ncols, nrows)
         else:
-            self.A = Matrix.sparse(weight_type)
+            self.A = Matrix.sparse(weight_type, nrows, ncols)
             self.B = None
 
     def add(self, source, destination, weight=True, eid=None, A_weight=True):
@@ -79,10 +82,13 @@ class Relation:
 
     def __iter__(self):
         if self.incidence:
-            for sid, did, eid in self(INT64.any_secondi):
-                w = self.B[eid]
-                for _, weight in w:
-                    yield Edge(self.graph, self.rid, sid, did, weight, eid)
+            AT = self.A.T
+            for eid in AT.rows:
+                sids = list(AT[eid].indices)
+                _dids = self.B[eid]
+                dids = list(_dids.indices)
+                weights = list(_dids.vals)
+                yield Hedge(self.graph, self.rid, sids, dids, weights, eid)
         else:
             for sid, did, weight in self.A:
                 yield Edge(self.graph, self.rid, sid, did, weight)
@@ -102,15 +108,31 @@ class Relation:
     def __getitem__(self, key):
         sid, did = key
         if self.incidence:
-            A = self.A.any_second(self.B)
-        else:
-            A = self.A
+            if isinstance(did, slice):
+                eids = self.A[sid]
+                for eid, _ in eids:
+                    _dids = self.B[eid]
+                    dids = list(_dids.indices)
+                    weights = list(_dids.vals)
+                    yield Hedge(self.graph, self.rid, [sid], dids, weights, eid)
+            elif isinstance(sid, slice):
+                BT = self.B.T
+                AT = self.A.T
+                eids = BT[did]
+                weights = list(eids.vals)
+                for eid, _ in eids:
+                    sids = list(AT[eid].indices)
+                    yield Hedge(self.graph, self.rid, sids, [did], weights, eid)
+            else:
+                adj = self.A.any_second(self.B)
+                yield Hedge(self.graph, self.rid, [sid], [did], [adj[sid, did]])
 
-        if isinstance(sid, slice):
-            for sid, weight in A[sid, did]:
-                yield Edge(self.graph, self.rid, sid, did, weight)
-        elif isinstance(did, slice):
-            for did, weight in A[sid, did]:
-                yield Edge(self.graph, self.rid, sid, did, weight)
         else:
-            yield Edge(self.graph, self.rid, sid, did, A[sid, did])
+            if isinstance(did, slice):
+                for did, weight in self.A[sid]:
+                    yield Edge(self.graph, self.rid, sid, did, weight)
+            elif isinstance(sid, slice):
+                for sid, weight in self.A[:, did]:
+                    yield Edge(self.graph, self.rid, sid, did, weight)
+            else:
+                yield Edge(self.graph, self.rid, sid, did, self.a[sid, did])
