@@ -169,7 +169,7 @@ To create edges of a certain type, 4 elements can be provided:
 
 ```python3
 >>> G.add_relation('coworker', incidence=True)
->>> G.coworker += [('bob', ('jane', 'alice')), ('alice', ('bob', 'jane'))]
+>>> G.coworker += [('bob', ('jane', 'alice')), (('alice', 'bob'), 'jane')]
 >>> G.coworker.draw(weights=False, filename='docs/imgs/G_coworker_1')
 <graphviz.dot.Digraph object at ...>
 ```
@@ -198,7 +198,7 @@ acts as a wildcard to matches all values.
  friend(alice, jane),
  friend(alice, rick),
  coworker((bob), (alice, jane), (True, True)),
- coworker((alice), (bob, jane), (True, True)),
+ coworker((bob, alice), (jane), (True, True)),
  distance(bob, alice, 422),
  distance(alice, jane, 42)]
 ```
@@ -220,6 +220,7 @@ Only print relations where `bob` is the src:
 [friend(bob, alice),
  friend(bob, sal),
  coworker((bob), (alice, jane), (True, True)),
+ coworker((bob, alice), (jane), (True, True)),
  distance(bob, alice, 422)]
 ```
 
@@ -228,7 +229,7 @@ Only print relations where `coworker` is the relation:
 ```python3
 >>> p(G(relation='coworker'))
 [coworker((bob), (alice, jane), (True, True)),
- coworker((alice), (bob, jane), (True, True))]
+ coworker((bob, alice), (jane), (True, True))]
 
 ```
 
@@ -238,10 +239,11 @@ Only print relations where `jane` is the dest:
 >>> p(G(destination='jane'))
 [friend(alice, jane),
  coworker((bob), (alice, jane), (True, True)),
- coworker((alice), (bob, jane), (True, True)),
+ coworker((bob, alice), (jane), (True, True)),
  distance(alice, jane, 42)]
 >>> p(G(source='bob', relation='coworker', destination='jane'))
-[coworker((bob), (alice, jane), (True, True))]
+[coworker((bob), (alice, jane), (True, True)), 
+ coworker((bob, alice), (jane), (True, True))]
 ```
 
 Edges can be tested to see if they are contained in the Graph:

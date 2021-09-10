@@ -7,8 +7,7 @@ from .node import Node
 class Edge(NamedTuple):
     """A simple Edge between one source and one destination node."""
 
-    graph: object
-    rid: int
+    relation: object
     sid: int
     did: int
     weight: object = True
@@ -22,19 +21,14 @@ class Edge(NamedTuple):
         return f"{self.relation.name}({self.source}, {self.destination}{weight})"
 
     @property
-    def relation(self):
-        """Return edge relation."""
-        return self.graph.relations[self.rid]
-
-    @property
     def source(self):
         """Return edge source."""
-        return Node(self.graph, self.sid)
+        return Node(self.relation.graph, self.sid)
 
     @property
     def destination(self):
         """Return edge destination"""
-        return Node(self.graph, self.did)
+        return Node(self.relation.graph, self.did)
 
 
 class Hedge(NamedTuple):
@@ -43,8 +37,7 @@ class Hedge(NamedTuple):
 
     """
 
-    graph: object
-    rid: int
+    relation: object
     sids: List[int]
     dids: List[int]
     weights: List[object] = None
@@ -57,16 +50,13 @@ class Hedge(NamedTuple):
         return f"{self.relation.name}(({sources}), ({destinations}), ({weights}))"
 
     @property
-    def relation(self):
-        """Return edge relation."""
-        return self.graph.relations[self.rid]
-
-    @property
     def sources(self):
         """Return edge sources."""
-        return [Node(self.graph, sid) for sid in self.sids]
+        g = self.relation.graph
+        return [Node(g, sid) for sid in self.sids]
 
     @property
     def destinations(self):
         """Return edge destinations."""
-        return [Node(self.graph, did) for did in self.dids]
+        g = self.relation.graph
+        return [Node(g, did) for did in self.dids]

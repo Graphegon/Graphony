@@ -1,5 +1,7 @@
 """Relation objects.
 """
+from functools import total_ordering
+
 from pygraphblas import Matrix, BOOL, INT64
 from pygraphblas.gviz import draw_graph
 
@@ -7,6 +9,7 @@ from .edge import Edge, Hedge
 from .node import Node
 
 
+@total_ordering
 class Relation:
     """
     Relation object.
@@ -74,6 +77,9 @@ class Relation:
         else:
             return draw_graph(self.A, **kwargs)
 
+    def __lt__(self, other):
+        return self.rid < other.rid
+
     def __iadd__(self, relation):
         if isinstance(relation, tuple):
             self.add(*relation)
@@ -97,13 +103,11 @@ class Relation:
             AT = self.A.T
             for eid in AT.rows:
                 sids = list(AT[eid].indices)
-                _dids = self.B[eid]
-                dids = list(_dids.indices)
-                weights = list(_dids.vals)
-                yield Hedge(self.graph, self.rid, sids, dids, weights, eid)
+                dids = self.B[eid]
+                yield Hedge(self, sids, list(dids.indices), list(dids.vals), eid)
         else:
             for sid, did, weight in self.A:
-                yield Edge(self.graph, self.rid, sid, did, weight)
+                yield Edge(self, sid, did, weight)
 
     def __len__(self):
         return self.B.nvals if self.incidence else self.A.nvals
@@ -128,7 +132,7 @@ class Relation:
                     dids = list(_dids.indices)
                     weights = list(_dids.vals)
                     sids = list(AT[eid].indices)
-                    yield Hedge(self.graph, self.rid, sids, dids, weights, eid)
+                    yield Hedge(self, sids, dids, weights, eid)
             elif isinstance(sid, slice):
                 BT = self.B.T
                 eids = BT[did]
@@ -136,7 +140,7 @@ class Relation:
                 for eid, _ in eids:
                     sids = list(AT[eid].indices)
                     dids = list(self.B[eid].indices)
-                    yield Hedge(self.graph, self.rid, sids, dids, weights, eid)
+                    yield Hedge(self, sids, dids, weights, eid)
             else:
                 BT = self.B.T
                 deids = BT[did]
@@ -147,14 +151,14 @@ class Relation:
                     _dids = self.B[eid]
                     dids = list(_dids.indices)
                     weights = list(_dids.vals)
-                    yield Hedge(self.graph, self.rid, sids, dids, weights, eid)
+                    yield Hedge(self, sids, dids, weights, eid)
 
         else:
             if isinstance(did, slice):
                 for did, weight in self.A[sid]:
-                    yield Edge(self.graph, self.rid, sid, did, weight)
+                    yield Edge(self, sid, did, weight)
             elif isinstance(sid, slice):
                 for sid, weight in self.A[:, did]:
-                    yield Edge(self.graph, self.rid, sid, did, weight)
+                    yield Edge(self, sid, did, weight)
             else:
-                yield Edge(self.graph, self.rid, sid, did, self.a[sid, did])
+                yield Edge(self, sid, did, self.a[sid, did])
