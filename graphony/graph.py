@@ -88,6 +88,11 @@ class Graph:
             c.execute(sql_code)
             return c.fetchall()
 
+    def get_node(self, name):
+        if isinstance(name, Node):
+            return name
+        return Node(self.graph, name)
+
     def add_relation(self, name, weight_type=None, incidence=False):
         """Add a new relation"""
         rid = self._upsert_relation(name, dumps(weight_type))

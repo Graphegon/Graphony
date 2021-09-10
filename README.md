@@ -169,7 +169,7 @@ To create edges of a certain type, 4 elements can be provided:
 
 ```python3
 >>> G.add_relation('coworker', incidence=True)
->>> G.coworker += [('bob', 'jane'), ('alice', 'jane')]
+>>> G.coworker += [('bob', ('jane', 'alice')), ('alice', ('bob', 'jane'))]
 
 >>> G.add_relation('distance', int)
 >>> G.distance += [('bob', 'alice', 422), ('alice', 'jane', 42)]
@@ -191,8 +191,8 @@ acts as a wildcard to matches all values.
  friend(bob, sal),
  friend(alice, jane),
  friend(alice, rick),
- coworker((bob), (jane), (True)),
- coworker((alice), (jane), (True)),
+ coworker((bob), (alice, jane), (True, True)),
+ coworker((alice), (bob, jane), (True, True)),
  distance(bob, alice, 422),
  distance(alice, jane, 42)]
 ```
@@ -213,7 +213,7 @@ Only print relations where `bob` is the src:
 >>> p(G(source='bob'))
 [friend(bob, alice),
  friend(bob, sal),
- coworker((bob), (jane), (True)),
+ coworker((bob), (alice, jane), (True, True)),
  distance(bob, alice, 422)]
 ```
 
@@ -221,7 +221,9 @@ Only print relations where `coworker` is the relation:
 
 ```python3
 >>> p(G(relation='coworker'))
-[coworker((bob), (jane), (True)), coworker((alice), (jane), (True))]
+[coworker((bob), (alice, jane), (True, True)),
+ coworker((alice), (bob, jane), (True, True))]
+
 ```
 
 Only print relations where `jane` is the dest:
@@ -245,7 +247,7 @@ Relations are accessible as attributes of the graph:
 <Adjacency friend BOOL:4>
 
 >>> G.coworker
-<Incidence coworker BOOL:2>
+<Incidence coworker BOOL:4>
 ```
 
 Relations can be iterated directly:
@@ -292,7 +294,7 @@ query above:
 ```
 ```python3
 >>> G
-<Graph [friend, coworker, distance, karate]: 86>
+<Graph [friend, coworker, distance, karate]: 88>
 
 >>> from graphony.lib import pagerank
 >>> G.add_relation('PR')

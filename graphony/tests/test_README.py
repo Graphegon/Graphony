@@ -24,7 +24,7 @@ def _phm_setup_doctest_teardown(doctest_namespace, managenamespace):
     for k, v in additions.items():
         doctest_namespace[k] = v
     yield
-    # teardown code line 311.
+    # teardown code line 313.
     postgresql.teardown(pgdata)
 
     managenamespace(operation="clear")
@@ -89,7 +89,7 @@ def session_00005_line_158():
 def session_00006_line_171():
     r"""
     >>> G.add_relation('coworker', incidence=True)
-    >>> G.coworker += [('bob', 'jane'), ('alice', 'jane')]
+    >>> G.coworker += [('bob', ('jane', 'alice')), ('alice', ('bob', 'jane'))]
 
     >>> G.add_relation('distance', int)
     >>> G.distance += [('bob', 'alice', 422), ('alice', 'jane', 42)]
@@ -105,8 +105,8 @@ def session_00007_line_189():
      friend(bob, sal),
      friend(alice, jane),
      friend(alice, rick),
-     coworker((bob), (jane), (True)),
-     coworker((alice), (jane), (True)),
+     coworker((bob), (alice, jane), (True, True)),
+     coworker((alice), (bob, jane), (True, True)),
      distance(bob, alice, 422),
      distance(alice, jane, 42)]
     """
@@ -128,7 +128,7 @@ def session_00009_line_213():
     >>> p(G(source='bob'))
     [friend(bob, alice),
      friend(bob, sal),
-     coworker((bob), (jane), (True)),
+     coworker((bob), (alice, jane), (True, True)),
      distance(bob, alice, 422)]
     """
 
@@ -136,11 +136,13 @@ def session_00009_line_213():
 def session_00010_line_223():
     r"""
     >>> p(G(relation='coworker'))
-    [coworker((bob), (jane), (True)), coworker((alice), (jane), (True))]
+    [coworker((bob), (alice, jane), (True, True)),
+     coworker((alice), (bob, jane), (True, True))]
+
     """
 
 
-def session_00011_line_230():
+def session_00011_line_232():
     r"""
     >>> p(G(destination='jane'))
     [friend(alice, jane),
@@ -152,17 +154,17 @@ def session_00011_line_230():
     """
 
 
-def session_00012_line_244():
+def session_00012_line_246():
     r"""
     >>> G.friend
     <Adjacency friend BOOL:4>
 
     >>> G.coworker
-    <Incidence coworker BOOL:2>
+    <Incidence coworker BOOL:4>
     """
 
 
-def session_00013_line_276():
+def session_00013_line_278():
     r"""
     >>> G.add_relation('karate')
     >>> G.karate += G.sql(
@@ -174,17 +176,17 @@ def session_00013_line_276():
     """
 
 
-def session_00014_line_290():
+def session_00014_line_292():
     r"""
     >>> len(G.karate)
     78
     """
 
 
-def session_00015_line_294():
+def session_00015_line_296():
     r"""
     >>> G
-    <Graph [friend, coworker, distance, karate]: 86>
+    <Graph [friend, coworker, distance, karate]: 88>
 
     >>> from graphony.lib import pagerank
     >>> G.add_relation('PR')

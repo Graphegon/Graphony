@@ -39,20 +39,29 @@ class Relation:
 
     def add(self, source, destination, weight=True, eid=None, A_weight=True):
         """Add an edge to this relation."""
-        if isinstance(source, str):
-            source = Node(self.graph, source)
-
-        if isinstance(destination, str):
-            destination = Node(self.graph, destination)
-
-        if self.incidence:
-            if eid is None:
-                eid = self.graph._new_edge()
-
-            self.A[source.n_id, eid] = A_weight
-            self.B[eid, destination.n_id] = weight
-        else:
+        if not self.incidence:
+            source = self.graph.get_node(source)
+            destination = self.graph.get_node(destination)
             self.A[source.n_id, destination.n_id] = weight
+            return
+
+        if eid is None:
+            eid = self.graph._new_edge()
+
+        if isinstance(source, tuple):
+            sources = [self.graph.get_node(s) for s in source]
+        else:
+            sources = [self.graph.get_node(source)]
+
+        if isinstance(destination, tuple):
+            destinations = [self.graph.get_node(d) for d in destination]
+        else:
+            destinations = [self.graph.get_node(destination)]
+
+        for s in sources:
+            self.A[s.n_id, eid] = A_weight
+        for d in destinations:
+            self.B[eid, d.n_id] = weight
 
     def draw(self, **kwargs):
         adj = self()
