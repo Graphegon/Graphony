@@ -1,7 +1,7 @@
-# Graphony: Hypersparse Hypergraphs
+# Graphony
 
 Graphony is a Python library for doing high-performance graph analysis
-using the GraphBLAS over sparse and hypersparse data sets.  
+using the GraphBLAS over sparse and hypersparse data sets.
 
 Graphony uses
 [pygraphblas](https://graphegon.github.io/pygraphblas/pygraphblas/index.html)
