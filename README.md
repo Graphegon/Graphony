@@ -198,7 +198,7 @@ acts as a wildcard to matches all values.
  friend(alice, jane),
  friend(alice, rick),
  coworker((bob), (alice, jane), (True, True)),
- coworker((bob, alice), (jane), (True, True)),
+ coworker((bob, alice), (jane), (True)),
  distance(bob, alice, 422),
  distance(alice, jane, 42)]
 ```
@@ -220,7 +220,7 @@ Only print relations where `bob` is the src:
 [friend(bob, alice),
  friend(bob, sal),
  coworker((bob), (alice, jane), (True, True)),
- coworker((bob, alice), (jane), (True, True)),
+ coworker((bob, alice), (jane), (True)),
  distance(bob, alice, 422)]
 ```
 
@@ -229,7 +229,7 @@ Only print relations where `coworker` is the relation:
 ```python3
 >>> p(G(relation='coworker'))
 [coworker((bob), (alice, jane), (True, True)),
- coworker((bob, alice), (jane), (True, True))]
+ coworker((bob, alice), (jane), (True))]
 
 ```
 
@@ -239,11 +239,12 @@ Only print relations where `jane` is the dest:
 >>> p(G(destination='jane'))
 [friend(alice, jane),
  coworker((bob), (alice, jane), (True, True)),
- coworker((bob, alice), (jane), (True, True)),
+ coworker((bob, alice), (jane), (True)),
  distance(alice, jane, 42)]
+ 
 >>> p(G(source='bob', relation='coworker', destination='jane'))
-[coworker((bob), (alice, jane), (True, True)), 
- coworker((bob, alice), (jane), (True, True))]
+[coworker((bob), (alice, jane), (True, True)),
+ coworker((bob, alice), (jane), (True))]
 ```
 
 Edges can be tested to see if they are contained in the Graph:
@@ -255,7 +256,7 @@ Relations are accessible as attributes of the graph:
 <Adjacency friend BOOL:4>
 
 >>> G.coworker
-<Incidence coworker BOOL:4>
+<Incidence coworker BOOL:3>
 ```
 
 Relations can be iterated directly:
@@ -302,7 +303,7 @@ query above:
 ```
 ```python3
 >>> G
-<Graph [friend, coworker, distance, karate]: 88>
+<Graph [friend, coworker, distance, karate]: 87>
 
 >>> from graphony.lib import pagerank
 >>> G.add_relation('PR')

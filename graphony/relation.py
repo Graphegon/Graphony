@@ -80,6 +80,9 @@ class Relation:
     def __lt__(self, other):
         return self.rid < other.rid
 
+    def __eq__(self, other):
+        return self.rid == other.rid
+
     def __iadd__(self, relation):
         if isinstance(relation, tuple):
             self.add(*relation)
@@ -101,7 +104,7 @@ class Relation:
     def __iter__(self):
         if self.incidence:
             AT = self.A.T
-            for eid in AT.rows:
+            for eid in set(AT.rows):
                 sids = list(AT[eid].indices)
                 dids = self.B[eid]
                 yield Hedge(self, sids, list(dids.indices), list(dids.vals), eid)
@@ -136,11 +139,10 @@ class Relation:
             elif isinstance(sid, slice):
                 BT = self.B.T
                 eids = BT[did]
-                weights = list(eids.vals)
                 for eid, _ in eids:
                     sids = list(AT[eid].indices)
-                    dids = list(self.B[eid].indices)
-                    yield Hedge(self, sids, dids, weights, eid)
+                    dids = self.B[eid]
+                    yield Hedge(self, sids, list(dids.indices), list(dids.vals), eid)
             else:
                 BT = self.B.T
                 deids = BT[did]
