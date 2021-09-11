@@ -24,7 +24,7 @@ def _phm_setup_doctest_teardown(doctest_namespace, managenamespace):
     for k, v in additions.items():
         doctest_namespace[k] = v
     yield
-    # teardown code line 306.
+    # teardown code line 319.
     postgresql.teardown(pgdata)
 
     managenamespace(operation="clear")
@@ -193,7 +193,17 @@ def session_00016_line_270():
     """
 
 
-def session_00017_line_288():
+def session_00017_line_277():
+    r"""
+    >>> from more_itertools import windowed
+    >>> G.add_relation('debruijn', incidence=True)
+    >>> G.debruijn += windowed(map("".join, windowed('ATACGATACAGATACATAGAGATAC', 2)), 2)
+    >>> G.debruijn.draw(weights=False, concentrate=False, filename='docs/imgs/G_debruijn_1')
+    <graphviz...>
+    """
+
+
+def session_00018_line_301():
     r"""
     >>> G
     <Graph [friend, coworker, distance, karate]: 87>

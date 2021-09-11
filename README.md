@@ -270,6 +270,19 @@ query above:
 >>> len(G.karate)
 78
 ```
+
+# De Bruijn Graphs
+
+```python3
+>>> from more_itertools import windowed
+>>> G.add_relation('debruijn', incidence=True)
+>>> G.debruijn += windowed(map("".join, windowed('ATACGATACAGATACATAGAGATAC', 2)), 2)
+>>> G.debruijn.draw(weights=False, concentrate=False, filename='docs/imgs/G_debruijn_1')
+<graphviz...>
+```
+![G_debruijn_1.png](docs/imgs/G_debruijn_1.png)
+
+
 # Graph Algorithms
 
 Graphony uses The GraphBLAS API to store graphs and runs graph
