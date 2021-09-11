@@ -48,7 +48,7 @@ import os
 import pprint
 import postgresql
 from pathlib import Path
-from pygraphblas import FP64
+from pygraphblas import FP64, INT64, gviz
 from graphony import Graph, Node
 p = lambda r: pprint.pprint(sorted(list(r)))
 pgdata, conn = postgresql.setup()
@@ -273,6 +273,12 @@ query above:
 
 # De Bruijn Graphs
 
+A fun type of multigraph is a [De
+Bruijn](https://en.wikipedia.org/wiki/De_Bruijn_graph) which is a
+directed graph that represents overlapping sequences of symbols.
+These graphs are used often in bioinformatics to analyze and assembly
+long sequences of genes from many short overlapping samples.
+
 ```python3
 >>> from more_itertools import windowed
 >>> G.add_relation('debruijn', incidence=True)
@@ -281,6 +287,19 @@ query above:
 <graphviz...>
 ```
 ![G_debruijn_1.png](docs/imgs/G_debruijn_1.png)
+
+Once the graph is built up it can be collapsed into a weighted graph,
+where the multi-edges between nodes are summed up into a single edge.
+In the GraphBLAS this can be accomplished by calling the relations
+with a semiring:
+
+```python3
+>>> M = G.debruijn(INT64.plus_pair)
+>>> gviz.draw_graph(M, weights=True, label_vector=G.debruijn.label_vector(M), 
+...                 filename='docs/imgs/G_debruijn_2')
+<graphviz...>
+```
+![G_debruijn_2.png](docs/imgs/G_debruijn_2.png)
 
 
 # Graph Algorithms
@@ -299,7 +318,7 @@ starting points for custom algorithms:
 
 ```python3
 >>> G
-<Graph [friend, coworker, distance, karate]: 87>
+<Graph [friend, coworker, distance, karate, debruijn]: 110>
 
 >>> from graphony.lib import pagerank
 >>> G.add_relation('PR')

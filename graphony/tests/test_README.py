@@ -11,7 +11,7 @@ def _phm_setup_doctest_teardown(doctest_namespace, managenamespace):
     import pprint
     import postgresql
     from pathlib import Path
-    from pygraphblas import FP64
+    from pygraphblas import FP64, INT64, gviz
     from graphony import Graph, Node
     p = lambda r: pprint.pprint(sorted(list(r)))
     pgdata, conn = postgresql.setup()
@@ -24,7 +24,7 @@ def _phm_setup_doctest_teardown(doctest_namespace, managenamespace):
     for k, v in additions.items():
         doctest_namespace[k] = v
     yield
-    # teardown code line 319.
+    # teardown code line 338.
     postgresql.teardown(pgdata)
 
     managenamespace(operation="clear")
@@ -193,7 +193,7 @@ def session_00016_line_270():
     """
 
 
-def session_00017_line_277():
+def session_00017_line_283():
     r"""
     >>> from more_itertools import windowed
     >>> G.add_relation('debruijn', incidence=True)
@@ -203,10 +203,19 @@ def session_00017_line_277():
     """
 
 
-def session_00018_line_301():
+def session_00018_line_297():
+    r"""
+    >>> M = G.debruijn(INT64.plus_pair)
+    >>> gviz.draw_graph(M, weights=True, label_vector=G.debruijn.label_vector(M), 
+    ...                 filename='docs/imgs/G_debruijn_2')
+    <graphviz...>
+    """
+
+
+def session_00019_line_320():
     r"""
     >>> G
-    <Graph [friend, coworker, distance, karate]: 87>
+    <Graph [friend, coworker, distance, karate, debruijn]: 110>
 
     >>> from graphony.lib import pagerank
     >>> G.add_relation('PR')

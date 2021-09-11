@@ -66,12 +66,13 @@ class Relation:
         for d in destinations:
             self.B[eid, d.n_id] = weight
 
+    def label_vector(self, A):
+        return {i: self.graph._get_node_name(i) for i in set(A.rows) | set(A.cols)}
+
     def draw(self, **kwargs):
-        adj = self()
+        A = self()
         if "label_vector" not in kwargs:
-            kwargs["label_vector"] = {
-                i: self.graph._get_node_name(i) for i in set(adj.rows) | set(adj.cols)
-            }
+            kwargs["label_vector"] = self.label_vector(A)
         if self.incidence:
             return draw_graph(self.A, B=self.B, **kwargs)
         else:
