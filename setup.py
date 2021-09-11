@@ -12,6 +12,6 @@ setup(
         "postgresql-wheel",
         "pygraphblas",
         "psycopg2-binary",
-        "lazy-property",
+        "more-itertools",
     ],
 )
