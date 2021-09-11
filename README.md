@@ -125,7 +125,7 @@ Now edges in that relation can be added to the graph:
 
 ```python3
 >>> G.friend += ('bob', 'alice')
->>> G.friend.draw(weights=False, filename='docs/imgs/G_friend_1')
+>>> G.friend.draw(weights=True, filename='docs/imgs/G_friend_1')
 <graphviz.dot.Digraph object at ...>
 ```
 ![G_friend_1.png](docs/imgs/G_friend_1.png)

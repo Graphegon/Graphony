@@ -55,7 +55,7 @@ def session_00001_line_121():
 def session_00002_line_127():
     r"""
     >>> G.friend += ('bob', 'alice')
-    >>> G.friend.draw(weights=False, filename='docs/imgs/G_friend_1')
+    >>> G.friend.draw(weights=True, filename='docs/imgs/G_friend_1')
     <graphviz.dot.Digraph object at ...>
     """
 
