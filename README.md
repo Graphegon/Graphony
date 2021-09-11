@@ -48,13 +48,6 @@ same nodes, and multiple nodes can connect the same edges.  In either
 case the edge weights can be any of the standard GraphBLAS types, or a
 User Defined Type.
 
-It's usually helpful to be able to project a pair of incidence
-matrices to an adjacency matrix using matrix multiplication.  This
-"collapses" a hypergraph into a regular directed graph with simple
-edges:
-
-![Projecting An incidence matrix to adjacency](./docs/imgs/Projection.png)
-
 Interally The GraphBLAS works row and column position indexes, which
 are a 60-bit integer key, so one of Graphony's key tasks is keeping
 track of node indexes and the names they map to.  These mappings are
