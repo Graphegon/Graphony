@@ -265,16 +265,6 @@ source and jane is a destination:
  coworker((bob, alice), (jane), (True))]
 ```
 
-Relations are accessible as attributes of the graph:
-
-```python3
->>> G.friend
-<Adjacency friend BOOL:4>
-
->>> G.coworker
-<Incidence coworker BOOL:3>
-```
-
 # Loading Graphs from SQL
 
 Any tuple producing iterator can be used to construct Graphs.
