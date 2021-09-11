@@ -105,7 +105,7 @@ of four concepts:
   - `Edge`: Relation edges can be simple point to point edges or
     hyperedges that represent relations between multiple incoming and
     outgoing nodes.
-    
+
   - `Node`: A node in the graph.
 
 ## Simple Graphs
@@ -165,16 +165,35 @@ As shown above, tuples with 3 elements (triples), are stored as
 boolean edges whose weights are always `True` and therefore can be
 ommited.
 
-To create edges of a certain type, 4 elements can be provided:
+# Hypergraphs
+
+A hypergraph is a generalization of a graph in which an edge can join
+any number of vertices in constrast to a simple graph, shown above,
+where an edge has exactly two endpoints and can only connect only one
+vertex to one other vertex.
+
+In Graphony a hypergraph can created in any *incidence* relation by
+passing the `incidence=True` flag.
 
 ```python3
 >>> G.add_relation('coworker', incidence=True)
+```
+
+New hyperedges can be defined by passing a tuple of nodes as either
+the source or destinations, or both, for a hyperedge.
+
+```python3
 >>> G.coworker += [('bob', ('jane', 'alice')), (('alice', 'bob'), 'jane')]
 >>> G.coworker.draw(weights=True, filename='docs/imgs/G_coworker_1')
 <graphviz.dot.Digraph object at ...>
 ```
 ![G_coworker_1.png](docs/imgs/G_coworker_1.png)
 
+# Property Graph
+
+Graphs can have any number of relations, each with a particular
+GraphBLAS type.  The default type is `BOOL` which created unweighted
+edges, but graph edge types can be specified on a per-relation basis:
 
 ```python3
 >>> G.add_relation('distance', int)
@@ -241,7 +260,7 @@ Only print relations where `jane` is the dest:
  coworker((bob), (alice, jane), (True, True)),
  coworker((bob, alice), (jane), (True)),
  distance(alice, jane, 42)]
- 
+
 >>> p(G(source='bob', relation='coworker', destination='jane'))
 [coworker((bob), (alice, jane), (True, True)),
  coworker((bob, alice), (jane), (True))]
