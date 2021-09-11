@@ -56,7 +56,7 @@ itself is not stored in PostgreSQL instead the structure is stored in
 GraphBLAS matrices. Only the node id and name mappings and node and
 edge properties are stored in the database.
 
-## Creating Graphs
+# Creating Graphs
 
 This documentation is also a runnable Python test called a
 [doctest]().  In order to run and verify this documentation, we must
@@ -101,7 +101,7 @@ of four concepts:
 
   - `Node`: A node in the graph.
 
-## Simple Graphs
+# Simple Graphs
 
 Edges can be added directly into the Graph with the `+=` method.  In
 their simplest form, an edge is a Python tuple with 3 elements, a
@@ -196,12 +196,22 @@ edges, but graph edge types can be specified on a per-relation basis:
 ```
 ![G_distance_2.png](docs/imgs/G_distance_2.png)
 
-## Graph Querying
+# Graph Querying
 
-The graph can then be called like `G(...)` to examine it.  A query
-consists of three optional arguments for `relation`, 'source' and
-`destination`.  The default value for all three is None, which
-acts as a wildcard to matches all values.
+Currently our graph looks like this, it contains 3 relations,
+`friend`, `coworker` and `distance`:
+
+```python3
+>>> G.draw(weights=True, filename='docs/imgs/G_all_1')
+<graphviz.dot.Digraph object at ...>
+```
+
+![G_all_1.png](docs/imgs/G_all_1.png)
+
+Graphs have a call interface like `G(...)` that can be used to query
+individual edges.  A query consists of three optional arguments for
+`source`, `relation` and `destination`.  The default value for all
+three is None, which acts as a wildcard to matches all values.
 
 ```python3
 >>> p(G())
@@ -215,17 +225,7 @@ acts as a wildcard to matches all values.
  distance(alice, jane, 42)]
 ```
 
-```python3
->>> p(list(G.friend))
-[friend(bob, alice), friend(bob, sal), friend(alice, jane), friend(alice, rick)]
-
->>> G.draw(weights=True, filename='docs/imgs/G_all_1')
-<graphviz.dot.Digraph object at ...>
-
-```
-![G_all_1.png](docs/imgs/G_all_1.png)
-
-Only print relations where `bob` is the src:
+Only print edges where `bob` is the src:
 
 ```python3
 >>> p(G(source='bob'))
@@ -236,7 +236,7 @@ Only print relations where `bob` is the src:
  distance(bob, alice, 422)]
 ```
 
-Only print relations where `coworker` is the relation:
+Only print edges where `coworker` is the relation:
 
 ```python3
 >>> p(G(relation='coworker'))
@@ -245,7 +245,7 @@ Only print relations where `coworker` is the relation:
 
 ```
 
-Only print relations where `jane` is the dest:
+Only print edges where `jane` is the destination:
 
 ```python3
 >>> p(G(destination='jane'))
@@ -253,13 +253,17 @@ Only print relations where `jane` is the dest:
  coworker((bob), (alice, jane), (True, True)),
  coworker((bob, alice), (jane), (True)),
  distance(alice, jane, 42)]
+```
 
+Only print edges that match that `bob` is a `coworker` of `jane`.
+Note in this case it returns two hyperedges, as in both cases bob is a
+source and jane is a destination:
+
+```python3
 >>> p(G(source='bob', relation='coworker', destination='jane'))
 [coworker((bob), (alice, jane), (True, True)),
  coworker((bob, alice), (jane), (True))]
 ```
-
-Edges can be tested to see if they are contained in the Graph:
 
 Relations are accessible as attributes of the graph:
 
@@ -271,24 +275,7 @@ Relations are accessible as attributes of the graph:
 <Incidence coworker BOOL:3>
 ```
 
-Relations can be iterated directly:
-
-
-## Graph Algorithms
-
-Graphony uses The GraphBLAS API to store graphs and runs graph
-algorithms by doing parallel sparse matrix multiplication using
-the SuiteSparse:GraphBLAS library.
-
-Matrix multiplication is a very power, but rather abstract
-approach to writing graph algorithms, and it can be tricky to
-writem common algorithms optimially form scratch, so Graphony
-contains some common graph algorithms which can also act as
-starting points for custom algorithms:
-
->>>
-
-## Query Graphs from SQL
+# Loading Graphs from SQL
 
 Any tuple producing iterator can be used to construct Graphs.
 Graphony offers a shorthand helper for this.  Any query that
@@ -313,6 +300,20 @@ query above:
 >>> len(G.karate)
 78
 ```
+# Graph Algorithms
+
+Graphony uses The GraphBLAS API to store graphs and runs graph
+algorithms by doing parallel sparse matrix multiplication using
+the SuiteSparse:GraphBLAS library.
+
+Matrix multiplication is a very power, but rather abstract
+approach to writing graph algorithms, and it can be tricky to
+writem common algorithms optimially form scratch, so Graphony
+contains some common graph algorithms which can also act as
+starting points for custom algorithms:
+
+# PageRank
+
 ```python3
 >>> G
 <Graph [friend, coworker, distance, karate]: 87>
