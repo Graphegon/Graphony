@@ -30,32 +30,6 @@ Graphs can be:
     Graph](http://graphdatamodeling.com/Graph%20Data%20Modeling/GraphDataModeling/page/PropertyGraphs.html):
     Nodes and and Edges can have arbitrary JSON properties.
 
-
-# Introduction
-
-A graph is set of nodes connected by edges.  Edges are typed and group
-into named collections called *relations*.  Each relation holds edges
-in one of two forms, an [adjancency
-matrix](https://en.wikipedia.org/wiki/Adjacency_matrix) which can hold
-a simple graph with directed or undirected 1-to-1 edges:
-
-![An adjacency matrix](./docs/imgs/Adjacency.png)
-
-Or a graph can be stored by two [incidence
-matrices](https://en.wikipedia.org/wiki/Incidence_matrix), which can
-hold multigraphs and hypergraphs where multiple edges can connect the
-same nodes, and multiple nodes can connect the same edges.  In either
-case the edge weights can be any of the standard GraphBLAS types, or a
-User Defined Type.
-
-Interally The GraphBLAS works row and column position indexes, which
-are a 60-bit integer key, so one of Graphony's key tasks is keeping
-track of node indexes and the names they map to.  These mappings are
-stored in PostgreSQL.  It's important to note that the graph structure
-itself is not stored in PostgreSQL instead the structure is stored in
-GraphBLAS matrices. Only the node id and name mappings and node and
-edge properties are stored in the database.
-
 # Creating Graphs
 
 This documentation is also a runnable Python test called a
