@@ -92,6 +92,7 @@ Now edges in that relation can be added to the graph:
 
 ```python3
 >>> G.friend += ('bob', 'alice')
+
 >>> G.friend.draw(weights=False, filename='docs/imgs/G_friend_1')
 <graphviz.dot.Digraph object at ...>
 ```
@@ -106,6 +107,7 @@ provide properties for them:
 >>> jane.props
 {'favorite_color': 'blue'}
 >>> G.friend += ('alice', jane)
+
 >>> G.friend.draw(weights=False, filename='docs/imgs/G_friend_2')
 <graphviz.dot.Digraph object at ...>
 ```
@@ -123,6 +125,7 @@ An iterator of relation tuples can also be provided:
 
 ```python3
 >>> G.friend += [('bob', 'sal'), ('alice', 'rick')]
+
 >>> G.friend.draw(weights=False, filename='docs/imgs/G_friend_3')
 <graphviz.dot.Digraph object at ...>
 ```
@@ -151,6 +154,7 @@ the source or destinations, or both, for a hyperedge.
 
 ```python3
 >>> G.coworker += [('bob', ('jane', 'alice')), (('alice', 'bob'), 'jane')]
+
 >>> G.coworker.draw(weights=True, filename='docs/imgs/G_coworker_1')
 <graphviz.dot.Digraph object at ...>
 ```
@@ -165,6 +169,7 @@ edges, but graph edge types can be specified on a per-relation basis:
 ```python3
 >>> G.add_relation('distance', int)
 >>> G.distance += [('bob', 'alice', 422), ('alice', 'jane', 42)]
+
 >>> G.distance.draw(weights=True, filename='docs/imgs/G_distance_2')
 <graphviz.dot.Digraph object at ...>
 ```
@@ -251,6 +256,7 @@ graph.
 >>> G.karate += G.sql(
 ...  "select 'k_' || s_id, 'k_' || d_id "
 ...  "from graphony.karate")
+
 >>> G.karate.draw(weights=False, filename='docs/imgs/G_karate_3',
 ...               directed=False, graph_attr=dict(layout='sfdp'))
 <graphviz.dot.Graph object at ...>
@@ -288,6 +294,7 @@ starting points for custom algorithms:
 >>> J = "CBBBBADFEBEBEBEEE"
 >>> G.PR += zip(I, J)
 >>> rank, iters = pagerank(G.PR(cast=FP64))
+
 >>> G.PR.draw(weights=False, filename='docs/imgs/G_PR_1', rankdir='BT',
 ...           label_vector=rank, label_width=4)
 <graphviz.dot.Digraph object at ...>
