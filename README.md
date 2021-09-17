@@ -287,17 +287,24 @@ query above:
 78
 ```
 
-# De Bruijn Graphs
+# Multigraphs
 
-A [De Bruijn](https://en.wikipedia.org/wiki/De_Bruijn_graph) graph is
-a directed graph that represents overlapping sequences of symbols.
-These graphs are used often in bioinformatics to analyze and assembly
-long sequences of genes from many short overlapping samples.
+In a [Multigraph](https://en.wikipedia.org/wiki/Multigraph) multiple
+edges can exist between two nodes.  A good example is a [De
+Bruijn](https://en.wikipedia.org/wiki/De_Bruijn_graph) graph, a
+directed graph that represents overlapping sequences of symbols.
+
+These graphs are used in bioinformatics to analyze and assemble long
+sequences of genetic data.  Construction involves iterating a sequence
+of genetic information and constructing multiple edges between pairs
+of nodes.
 
 ```python3
 >>> from more_itertools import windowed
 >>> G.add_relation('debruijn', incidence=True)
->>> G.debruijn += windowed(map("".join, windowed('ATACGATACAGATACATAGAGATAC', 2)), 2)
+>>> def kmer(t, k=3): 
+...     return [tuple(map("".join, windowed(i, k-1))) for i in map("".join, windowed(t, k))]
+>>> G.debruijn += kmer('ATACGATACAGATACATAGAGATAC')
 >>> G.debruijn.draw(weights=False, concentrate=False, filename='docs/imgs/G_debruijn_1')
 <graphviz...>
 ```

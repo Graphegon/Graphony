@@ -24,7 +24,7 @@ def _phm_setup_doctest_teardown(doctest_namespace, managenamespace):
     for k, v in additions.items():
         doctest_namespace[k] = v
     yield
-    # teardown code line 356.
+    # teardown code line 360.
     postgresql.teardown(pgdata)
 
     managenamespace(operation="clear")
@@ -173,12 +173,10 @@ def session_00014_line_261():
     """
 
 
-def session_00015_line_274():
+def session_00015_line_273():
     r"""
     >>> G.add_relation('karate')
-    >>> G.karate += G.sql(
-    ...  "select 'k_' || s_id, 'k_' || d_id "
-    ...  "from graphony.karate")
+    >>> G.karate += G.sql("select 'k_' || s_id, 'k_' || d_id from graphony.karate")
 
     >>> G.karate.draw(weights=False, filename='docs/imgs/G_karate_3',
     ...               directed=False, graph_attr=dict(layout='sfdp'))
@@ -186,24 +184,26 @@ def session_00015_line_274():
     """
 
 
-def session_00016_line_289():
+def session_00016_line_286():
     r"""
     >>> len(G.karate)
     78
     """
 
 
-def session_00017_line_301():
+def session_00017_line_303():
     r"""
     >>> from more_itertools import windowed
     >>> G.add_relation('debruijn', incidence=True)
-    >>> G.debruijn += windowed(map("".join, windowed('ATACGATACAGATACATAGAGATAC', 2)), 2)
+    >>> def kmer(t, k=3): 
+    ...     return [tuple(map("".join, windowed(i, k-1))) for i in map("".join, windowed(t, k))]
+    >>> G.debruijn += kmer('ATACGATACAGATACATAGAGATAC')
     >>> G.debruijn.draw(weights=False, concentrate=False, filename='docs/imgs/G_debruijn_1')
     <graphviz...>
     """
 
 
-def session_00018_line_315():
+def session_00018_line_319():
     r"""
     >>> M = G.debruijn(INT64.plus_pair)
     >>> gviz.draw_graph(M, weights=True, label_vector=G.debruijn.label_vector(M), 
@@ -212,7 +212,7 @@ def session_00018_line_315():
     """
 
 
-def session_00019_line_338():
+def session_00019_line_342():
     r"""
     >>> G
     <Graph [friend, coworker, distance, karate, debruijn]: 110>
