@@ -266,15 +266,12 @@ source and jane is a destination:
 # Loading Graphs from SQL
 
 Any tuple producing iterator can be used to construct Graphs.
-Graphony offers a shorthand helper for this.  Any query that
-produces 3 or 4 columns can be used to produce edges into the
-graph.
+Graphony offers a shorthand helper for this.  Any query that produces
+2 or 3 columns can be used to produce edges into the graph.
 
 ```python3
 >>> G.add_relation('karate')
->>> G.karate += G.sql(
-...  "select 'k_' || s_id, 'k_' || d_id "
-...  "from graphony.karate")
+>>> G.karate += G.sql("select 'k_' || s_id, 'k_' || d_id from graphony.karate")
 
 >>> G.karate.draw(weights=False, filename='docs/imgs/G_karate_3',
 ...               directed=False, graph_attr=dict(layout='sfdp'))
