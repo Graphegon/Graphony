@@ -77,18 +77,22 @@ of four concepts:
 
 # Simple Graphs
 
-Edges can be added directly into the Graph with the `+=` method.  In
-their simplest form, an edge is a Python tuple with 3 elements, a
-relation name, a source name, and a destination name:
+Graphs consist of multiple typed subgraphs called *relations*.  All
+relations share node ids across a Graph object, but each relation can
+store edge weights of different data types like int, float, or bool.
+Internally, "simple" graphs (non-hyper) are stored as [Adjacency
+Matrices](https://en.wikipedia.org/wiki/Adjacency_matrix).
 
 Before you can add an edge, a relation to hold it must be declared
-first.
+first.  The default edge type is `bool` if you don't specify one:
 
 ```python3
 >>> G.add_relation('friend')
 ```
 
-Now edges in that relation can be added to the graph:
+Edges can be added directly into the Graph with the `+=` method.  In
+their simplest form, an edge is a Python tuple with 2 elements a
+source and a destination:
 
 ```python3
 >>> G.friend += ('bob', 'alice')
@@ -121,7 +125,8 @@ alice and the other from alice to jane.
 [friend(bob, alice), friend(alice, jane)]
 ```
 
-An iterator of relation tuples can also be provided:
+An iterator of relation tuples can also be provided to the `+=`
+operator which will consume them and add them to the relation:
 
 ```python3
 >>> G.friend += [('bob', 'sal'), ('alice', 'rick')]
@@ -131,26 +136,29 @@ An iterator of relation tuples can also be provided:
 ```
 ![G_friend_3.png](docs/imgs/G_friend_3.png)
 
-As shown above, tuples with 3 elements (triples), are stored as
-boolean edges whose weights are always `True` and therefore can be
-ommited.
+As shown above, tuples are stored as boolean edges whose weights are
+always `True` and therefore can be ommited.
 
 # Hypergraphs
 
-A hypergraph is a generalization of a graph in which an edge can join
-any number of vertices in constrast to a simple graph, shown above,
-where an edge has exactly two endpoints and can only connect only one
-vertex to one other vertex.
+A [Hypergraph](https://en.wikipedia.org/wiki/Hypergraph) is a
+generalization of a graph in which an edge can join any number of
+vertices in constrast to a simple graph, shown above, where an edge
+has exactly two endpoints and can only connect only one vertex to one
+other vertex.
 
 In Graphony a hypergraph can created in any *incidence* relation by
-passing the `incidence=True` flag.
+passing the `incidence=True` flag.  This causes the relation to be
+stored internally as two [Incidence
+Matrices](https://en.wikipedia.org/wiki/Incidence_matrix) which can
+represent non-simple graphs like the hypergraph shown here:
 
 ```python3
 >>> G.add_relation('coworker', incidence=True)
 ```
 
-New hyperedges can be defined by passing a tuple of nodes as either
-the source or destinations, or both, for a hyperedge.
+New hyperedges can be defined by passing a nested tuple of nodes as
+either the source or destinations, or both, for a hyperedge.
 
 ```python3
 >>> G.coworker += [('bob', ('jane', 'alice')), (('alice', 'bob'), 'jane')]
@@ -160,11 +168,17 @@ the source or destinations, or both, for a hyperedge.
 ```
 ![G_coworker_1.png](docs/imgs/G_coworker_1.png)
 
+Here a hyperedge with one source and two destinations is created from
+bob to jane and alice, and another with two sources and one
+destination is created from alice and bob to jane.
+
 # Property Graph
 
 Graphs can have any number of relations, each with a particular
-GraphBLAS type.  The default type is `BOOL` which created unweighted
-edges, but graph edge types can be specified on a per-relation basis:
+GraphBLAS type.  In general this is referred to as a Property Graph.
+As shown above the default relation type is `bool` which created
+unweighted edges, but graph edge types can be specified on a
+per-relation basis:
 
 ```python3
 >>> G.add_relation('distance', int)
@@ -174,6 +188,11 @@ edges, but graph edge types can be specified on a per-relation basis:
 <graphviz.dot.Digraph object at ...>
 ```
 ![G_distance_2.png](docs/imgs/G_distance_2.png)
+
+Supported python types include `bool`, `int`, `float` and `complex`
+which are converted into the GraphBLAS types `GrB_BOOL`, `GrB_INT64`,
+`GrB_FP64` and `GxB_FC64` for storage.  You can also pass a specific
+GraphBLAS type if you want different precision or a custom type.
 
 # Graph Querying
 
@@ -273,9 +292,8 @@ query above:
 
 # De Bruijn Graphs
 
-A fun type of multigraph is a [De
-Bruijn](https://en.wikipedia.org/wiki/De_Bruijn_graph) which is a
-directed graph that represents overlapping sequences of symbols.
+A [De Bruijn](https://en.wikipedia.org/wiki/De_Bruijn_graph) graph is
+a directed graph that represents overlapping sequences of symbols.
 These graphs are used often in bioinformatics to analyze and assembly
 long sequences of genes from many short overlapping samples.
 
@@ -288,10 +306,10 @@ long sequences of genes from many short overlapping samples.
 ```
 ![G_debruijn_1.png](docs/imgs/G_debruijn_1.png)
 
-Once the graph is built up it can be collapsed into a weighted graph,
-where the multi-edges between nodes are summed up into a single edge.
-In the GraphBLAS this can be accomplished by calling the relations
-with a semiring:
+Once the graph is built up it can be "collapsed" into a weighted
+graph, where the multi-edges between nodes are summed up into a single
+edge.  In the GraphBLAS this can be accomplished by calling the
+relations with a semiring:
 
 ```python3
 >>> M = G.debruijn(INT64.plus_pair)

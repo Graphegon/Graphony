@@ -24,7 +24,7 @@ def _phm_setup_doctest_teardown(doctest_namespace, managenamespace):
     for k, v in additions.items():
         doctest_namespace[k] = v
     yield
-    # teardown code line 338.
+    # teardown code line 356.
     postgresql.teardown(pgdata)
 
     managenamespace(operation="clear")
@@ -46,13 +46,13 @@ def session_00000():
     """
 
 
-def session_00001_line_88():
+def session_00001_line_90():
     r"""
     >>> G.add_relation('friend')
     """
 
 
-def session_00002_line_94():
+def session_00002_line_98():
     r"""
     >>> G.friend += ('bob', 'alice')
 
@@ -61,7 +61,7 @@ def session_00002_line_94():
     """
 
 
-def session_00003_line_106():
+def session_00003_line_110():
     r"""
     >>> jane = Node(G, 'jane', favorite_color='blue')
     >>> jane.props
@@ -73,14 +73,14 @@ def session_00003_line_106():
     """
 
 
-def session_00004_line_120():
+def session_00004_line_124():
     r"""
     >>> p(G.friend)
     [friend(bob, alice), friend(alice, jane)]
     """
 
 
-def session_00005_line_127():
+def session_00005_line_132():
     r"""
     >>> G.friend += [('bob', 'sal'), ('alice', 'rick')]
 
@@ -89,13 +89,13 @@ def session_00005_line_127():
     """
 
 
-def session_00006_line_149():
+def session_00006_line_157():
     r"""
     >>> G.add_relation('coworker', incidence=True)
     """
 
 
-def session_00007_line_156():
+def session_00007_line_164():
     r"""
     >>> G.coworker += [('bob', ('jane', 'alice')), (('alice', 'bob'), 'jane')]
 
@@ -104,7 +104,7 @@ def session_00007_line_156():
     """
 
 
-def session_00008_line_170():
+def session_00008_line_184():
     r"""
     >>> G.add_relation('distance', int)
     >>> G.distance += [('bob', 'alice', 422), ('alice', 'jane', 42)]
@@ -114,14 +114,14 @@ def session_00008_line_170():
     """
 
 
-def session_00009_line_184():
+def session_00009_line_203():
     r"""
     >>> G.draw(weights=True, filename='docs/imgs/G_all_1')
     <graphviz.dot.Digraph object at ...>
     """
 
 
-def session_00010_line_196():
+def session_00010_line_215():
     r"""
     >>> p(G())
     [friend(bob, alice),
@@ -135,7 +135,7 @@ def session_00010_line_196():
     """
 
 
-def session_00011_line_210():
+def session_00011_line_229():
     r"""
     >>> p(G(source='bob'))
     [friend(bob, alice),
@@ -146,7 +146,7 @@ def session_00011_line_210():
     """
 
 
-def session_00012_line_221():
+def session_00012_line_240():
     r"""
     >>> p(G(relation='coworker'))
     [coworker((bob), (alice, jane), (True, True)),
@@ -155,7 +155,7 @@ def session_00012_line_221():
     """
 
 
-def session_00013_line_230():
+def session_00013_line_249():
     r"""
     >>> p(G(destination='jane'))
     [friend(alice, jane),
@@ -165,7 +165,7 @@ def session_00013_line_230():
     """
 
 
-def session_00014_line_242():
+def session_00014_line_261():
     r"""
     >>> p(G(source='bob', relation='coworker', destination='jane'))
     [coworker((bob), (alice, jane), (True, True)),
@@ -173,7 +173,7 @@ def session_00014_line_242():
     """
 
 
-def session_00015_line_255():
+def session_00015_line_274():
     r"""
     >>> G.add_relation('karate')
     >>> G.karate += G.sql(
@@ -186,14 +186,14 @@ def session_00015_line_255():
     """
 
 
-def session_00016_line_270():
+def session_00016_line_289():
     r"""
     >>> len(G.karate)
     78
     """
 
 
-def session_00017_line_283():
+def session_00017_line_301():
     r"""
     >>> from more_itertools import windowed
     >>> G.add_relation('debruijn', incidence=True)
@@ -203,7 +203,7 @@ def session_00017_line_283():
     """
 
 
-def session_00018_line_297():
+def session_00018_line_315():
     r"""
     >>> M = G.debruijn(INT64.plus_pair)
     >>> gviz.draw_graph(M, weights=True, label_vector=G.debruijn.label_vector(M), 
@@ -212,7 +212,7 @@ def session_00018_line_297():
     """
 
 
-def session_00019_line_320():
+def session_00019_line_338():
     r"""
     >>> G
     <Graph [friend, coworker, distance, karate, debruijn]: 110>
