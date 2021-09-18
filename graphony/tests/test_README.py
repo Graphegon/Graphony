@@ -24,7 +24,7 @@ def _phm_setup_doctest_teardown(doctest_namespace, managenamespace):
     for k, v in additions.items():
         doctest_namespace[k] = v
     yield
-    # teardown code line 360.
+    # teardown code line 380.
     postgresql.teardown(pgdata)
 
     managenamespace(operation="clear")
@@ -197,8 +197,8 @@ def session_00017_line_303():
     >>> G.add_relation('debruijn', incidence=True)
     >>> def kmer(t, k=3): 
     ...     return [tuple(map("".join, windowed(i, k-1))) for i in map("".join, windowed(t, k))]
-    >>> G.debruijn += kmer('ATACGATACAGATACATAGAGATAC')
-    >>> G.debruijn.draw(weights=False, concentrate=False, filename='docs/imgs/G_debruijn_1')
+    >>> G.debruijn += kmer('ATCGATCGGATGACAGACACAATTC')
+    >>> G.debruijn.draw(graph_attr=dict(layout='circo'), weights=False, concentrate=True, filename='docs/imgs/G_debruijn_1')
     <graphviz...>
     """
 
@@ -207,12 +207,32 @@ def session_00018_line_319():
     r"""
     >>> M = G.debruijn(INT64.plus_pair)
     >>> gviz.draw_graph(M, weights=True, label_vector=G.debruijn.label_vector(M), 
-    ...                 filename='docs/imgs/G_debruijn_2')
+    ...                 graph_attr=dict(layout='circo'), filename='docs/imgs/G_debruijn_2')
     <graphviz...>
     """
 
 
-def session_00019_line_342():
+def session_00019_line_329():
+    r"""
+    >>> from Bio import SeqIO
+    >>> from Bio import Entrez
+    >>> Entrez.email = "info@graphegon.com"
+    >>> handle = Entrez.efetch(db="nucleotide", id="EU490707", rettype="gb", retmode="text")
+    >>> record = SeqIO.read(handle, "genbank")
+    >>> handle.close()
+    >>> from more_itertools import windowed
+    >>> G.add_relation('selenipedium', incidence=True)
+    >>> def kmer(t, k=3): 
+    ...     return [tuple(map("".join, windowed(i, k-1))) for i in map("".join, windowed(t, k))]
+    >>> G.selenipedium += kmer(str(record.seq))
+    >>> M = G.selenipedium(INT64.plus_pair)
+    >>> gviz.draw_graph(M, weights=True, label_vector=G.selenipedium.label_vector(M), 
+    ...                 graph_attr=dict(layout='circo'), filename='docs/imgs/G_selenipedium_1')
+    <graphviz...>
+    """
+
+
+def session_00020_line_362():
     r"""
     >>> G
     <Graph [friend, coworker, distance, karate, debruijn]: 110>
