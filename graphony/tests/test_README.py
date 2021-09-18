@@ -24,7 +24,7 @@ def _phm_setup_doctest_teardown(doctest_namespace, managenamespace):
     for k, v in additions.items():
         doctest_namespace[k] = v
     yield
-    # teardown code line 380.
+    # teardown code line 384.
     postgresql.teardown(pgdata)
 
     managenamespace(operation="clear")
@@ -212,27 +212,27 @@ def session_00018_line_319():
     """
 
 
-def session_00019_line_329():
+def session_00019_line_333():
     r"""
-    >>> from Bio import SeqIO
-    >>> from Bio import Entrez
+    >>> from Bio import SeqIO, Entrez
     >>> Entrez.email = "info@graphegon.com"
-    >>> handle = Entrez.efetch(db="nucleotide", id="EU490707", rettype="gb", retmode="text")
+    >>> handle = Entrez.efetch(db="nucleotide", id="MZ299081", rettype="gb", retmode="text")
     >>> record = SeqIO.read(handle, "genbank")
     >>> handle.close()
     >>> from more_itertools import windowed
-    >>> G.add_relation('selenipedium', incidence=True)
+    >>> G.add_relation('circovirus', incidence=True)
     >>> def kmer(t, k=3): 
     ...     return [tuple(map("".join, windowed(i, k-1))) for i in map("".join, windowed(t, k))]
-    >>> G.selenipedium += kmer(str(record.seq))
-    >>> M = G.selenipedium(INT64.plus_pair)
-    >>> gviz.draw_graph(M, weights=True, label_vector=G.selenipedium.label_vector(M), 
-    ...                 graph_attr=dict(layout='circo'), filename='docs/imgs/G_selenipedium_1')
+    >>> seq = str(record.seq)
+    >>> G.circovirus += kmer(seq, 3)
+    >>> M = G.circovirus(INT64.plus_pair)
+    >>> gviz.draw_graph(M, weights=True, labels=True, label_vector=G.circovirus.label_vector(M),
+    ...                 graph_attr=dict(layout='sfdp'), filename='docs/imgs/G_circovirus_1')
     <graphviz...>
     """
 
 
-def session_00020_line_362():
+def session_00020_line_366():
     r"""
     >>> G
     <Graph [friend, coworker, distance, karate, debruijn]: 110>

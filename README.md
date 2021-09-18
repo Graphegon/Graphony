@@ -326,26 +326,26 @@ relations with a semiring:
 # Example Weighted De Bruijn using BioPython
 
 Here's an example or using [Biopython](https://biopython.org/) to
-create an weighted De Bruijn graph of the chloroplast Selenipedium
-aequinoctiale:
+create an weighted De Bruijn graph of a Circovirus:
 
 ```python3
 >>> from Bio import SeqIO, Entrez
 >>> Entrez.email = "info@graphegon.com"
->>> handle = Entrez.efetch(db="nucleotide", id="EU490707", rettype="gb", retmode="text")
+>>> handle = Entrez.efetch(db="nucleotide", id="MZ299081", rettype="gb", retmode="text")
 >>> record = SeqIO.read(handle, "genbank")
 >>> handle.close()
 >>> from more_itertools import windowed
->>> G.add_relation('selenipedium', incidence=True)
+>>> G.add_relation('circovirus', incidence=True)
 >>> def kmer(t, k=3): 
 ...     return [tuple(map("".join, windowed(i, k-1))) for i in map("".join, windowed(t, k))]
->>> G.selenipedium += kmer(str(record.seq))
->>> M = G.selenipedium(INT64.plus_pair)
->>> gviz.draw_graph(M, weights=True, label_vector=G.selenipedium.label_vector(M), 
-...                 graph_attr=dict(layout='circo'), filename='docs/imgs/G_selenipedium_1')
+>>> seq = str(record.seq)
+>>> G.circovirus += kmer(seq, 3)
+>>> M = G.circovirus(INT64.plus_pair)
+>>> gviz.draw_graph(M, weights=True, labels=True, label_vector=G.circovirus.label_vector(M),
+...                 graph_attr=dict(layout='sfdp'), filename='docs/imgs/G_circovirus_1')
 <graphviz...>
 ```
-![G_selenipedium_1.png](docs/imgs/G_selenipedium_1.png)
+![G_circovirus_1.png](docs/imgs/G_circovirus_1.png)
 
 # Graph Algorithms
 
