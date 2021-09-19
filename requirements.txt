@@ -4,6 +4,6 @@
 
 biopython
 flake8
-pytestd
-pylintd
+pytest
+pylint
 phmdoctest
