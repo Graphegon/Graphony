@@ -7,8 +7,6 @@ setup(
     description="Graphony",
     author="Michel Pelletier",
     packages=["graphony"],
-    setup_requires=["pygraphblas"],
-    tests_require=["biopython", "flake8", "pytest", "pylint", "phmdoctest"],
     install_requires=[
         "postgresql-wheel",
         "pygraphblas",
