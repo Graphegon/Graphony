@@ -347,37 +347,6 @@ create an weighted De Bruijn graph of a Circovirus:
 ```
 ![G_circovirus_1.png](docs/imgs/G_circovirus_1.png)
 
-# Graph Algorithms
-
-Graphony uses The GraphBLAS API to store graphs and runs graph
-algorithms by doing parallel sparse matrix multiplication using
-the SuiteSparse:GraphBLAS library.
-
-Matrix multiplication is a very power, but rather abstract
-approach to writing graph algorithms, and it can be tricky to
-writem common algorithms optimially form scratch, so Graphony
-contains some common graph algorithms which can also act as
-starting points for custom algorithms:
-
-# PageRank
-
-```python3
->>> G
-<Graph [friend, coworker, distance, karate, debruijn, circovirus]: 750>
-
->>> from graphony.lib import pagerank
->>> G.add_relation('PR')
->>> I = "BCDEFDEEFGGHHIIJK"
->>> J = "CBBBBADFEBEBEBEEE"
->>> G.PR += zip(I, J)
->>> rank, iters = pagerank(G.PR(cast=FP64))
-
->>> G.PR.draw(weights=False, filename='docs/imgs/G_PR_1', rankdir='BT',
-...           label_vector=rank, label_width=4)
-<graphviz.dot.Digraph object at ...>
-```
-![G_PR_1.png](docs/imgs/G_PR_1.png)
-
 <!--phmdoctest-teardown-->
 ```python3
 postgresql.teardown(pgdata)
