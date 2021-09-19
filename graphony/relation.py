@@ -2,7 +2,7 @@
 """
 from functools import total_ordering
 
-from pygraphblas import Matrix, BOOL, INT64
+from pygraphblas import Matrix, BOOL, INT64, lib
 from pygraphblas.gviz import draw_graph
 
 from .edge import Edge, Hedge
@@ -23,7 +23,7 @@ class Relation:
         weight_type,
         incidence=False,
         incident_A_type=BOOL,
-        shape=(None, None),
+        shape=(lib.GxB_INDEX_MAX, lib.GxB_INDEX_MAX),
     ):
         self.graph = graph
         self.rid = rid

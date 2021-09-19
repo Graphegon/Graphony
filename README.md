@@ -363,7 +363,7 @@ starting points for custom algorithms:
 
 ```python3
 >>> G
-<Graph [friend, coworker, distance, karate, debruijn]: 110>
+<Graph [friend, coworker, distance, karate, debruijn, circovirus]: 750>
 
 >>> from graphony.lib import pagerank
 >>> G.add_relation('PR')

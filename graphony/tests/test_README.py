@@ -235,7 +235,7 @@ def session_00019_line_332():
 def session_00020_line_365():
     r"""
     >>> G
-    <Graph [friend, coworker, distance, karate, debruijn]: 110>
+    <Graph [friend, coworker, distance, karate, debruijn, circovirus]: 750>
 
     >>> from graphony.lib import pagerank
     >>> G.add_relation('PR')
