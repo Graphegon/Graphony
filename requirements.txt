@@ -1,0 +1,9 @@
+--index-url https://pypi.python.org/simple/
+
+-e .
+
+biopython
+flake8
+pytestd
+pylintd
+phmdoctest

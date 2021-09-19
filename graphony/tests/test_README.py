@@ -24,7 +24,7 @@ def _phm_setup_doctest_teardown(doctest_namespace, managenamespace):
     for k, v in additions.items():
         doctest_namespace[k] = v
     yield
-    # teardown code line 384.
+    # teardown code line 383.
     postgresql.teardown(pgdata)
 
     managenamespace(operation="clear")
@@ -196,7 +196,7 @@ def session_00017_line_303():
     >>> from more_itertools import windowed
     >>> G.add_relation('debruijn', incidence=True)
     >>> def kmer(t, k=3): 
-    ...     return [tuple(map("".join, windowed(i, k-1))) for i in map("".join, windowed(t, k))]
+    ...     return (tuple(map("".join, windowed(i, k-1))) for i in map("".join, windowed(t, k)))
     >>> G.debruijn += kmer('ATCGATCGGATGACAGACACAATTC')
     >>> G.debruijn.draw(graph_attr=dict(layout='circo'), weights=False, concentrate=True, filename='docs/imgs/G_debruijn_1')
     <graphviz...>
@@ -212,7 +212,7 @@ def session_00018_line_319():
     """
 
 
-def session_00019_line_333():
+def session_00019_line_332():
     r"""
     >>> from Bio import SeqIO, Entrez
     >>> Entrez.email = "info@graphegon.com"
@@ -222,7 +222,7 @@ def session_00019_line_333():
     >>> from more_itertools import windowed
     >>> G.add_relation('circovirus', incidence=True)
     >>> def kmer(t, k=3): 
-    ...     return [tuple(map("".join, windowed(i, k-1))) for i in map("".join, windowed(t, k))]
+    ...     return (tuple(map("".join, windowed(i, k-1))) for i in map("".join, windowed(t, k)))
     >>> seq = str(record.seq)
     >>> G.circovirus += kmer(seq, 3)
     >>> M = G.circovirus(INT64.plus_pair)
@@ -232,7 +232,7 @@ def session_00019_line_333():
     """
 
 
-def session_00020_line_366():
+def session_00020_line_365():
     r"""
     >>> G
     <Graph [friend, coworker, distance, karate, debruijn]: 110>

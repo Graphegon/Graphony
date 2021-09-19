@@ -303,7 +303,7 @@ of nodes.
 >>> from more_itertools import windowed
 >>> G.add_relation('debruijn', incidence=True)
 >>> def kmer(t, k=3): 
-...     return [tuple(map("".join, windowed(i, k-1))) for i in map("".join, windowed(t, k))]
+...     return (tuple(map("".join, windowed(i, k-1))) for i in map("".join, windowed(t, k)))
 >>> G.debruijn += kmer('ATCGATCGGATGACAGACACAATTC')
 >>> G.debruijn.draw(graph_attr=dict(layout='circo'), weights=False, concentrate=True, filename='docs/imgs/G_debruijn_1')
 <graphviz...>
@@ -337,7 +337,7 @@ create an weighted De Bruijn graph of a Circovirus:
 >>> from more_itertools import windowed
 >>> G.add_relation('circovirus', incidence=True)
 >>> def kmer(t, k=3): 
-...     return [tuple(map("".join, windowed(i, k-1))) for i in map("".join, windowed(t, k))]
+...     return (tuple(map("".join, windowed(i, k-1))) for i in map("".join, windowed(t, k)))
 >>> seq = str(record.seq)
 >>> G.circovirus += kmer(seq, 3)
 >>> M = G.circovirus(INT64.plus_pair)
