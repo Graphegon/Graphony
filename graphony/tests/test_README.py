@@ -24,7 +24,7 @@ def _phm_setup_doctest_teardown(doctest_namespace, managenamespace):
     for k, v in additions.items():
         doctest_namespace[k] = v
     yield
-    # teardown code line 383.
+    # teardown code line 353.
     postgresql.teardown(pgdata)
 
     managenamespace(operation="clear")
@@ -91,15 +91,15 @@ def session_00005_line_132():
 
 def session_00006_line_157():
     r"""
-    >>> G.add_relation('coworker', incidence=True)
+    >>> G.add_relation('manages', incidence=True)
     """
 
 
 def session_00007_line_164():
     r"""
-    >>> G.coworker += [('bob', ('jane', 'alice')), (('alice', 'bob'), 'jane')]
+    >>> G.manages += [('bob', ('rick', 'alice')), (('alice', 'bob'), 'jane')]
 
-    >>> G.coworker.draw(weights=True, filename='docs/imgs/G_coworker_1')
+    >>> G.manages.draw(weights=True, filename='docs/imgs/G_manages_1')
     <graphviz.dot.Digraph object at ...>
     """
 
@@ -128,8 +128,8 @@ def session_00010_line_215():
      friend(bob, sal),
      friend(alice, jane),
      friend(alice, rick),
-     coworker((bob), (alice, jane), (True, True)),
-     coworker((bob, alice), (jane), (True)),
+     manages((bob), (alice, jane), (True, True)),
+     manages((bob, alice), (jane), (True)),
      distance(bob, alice, 422),
      distance(alice, jane, 42)]
     """
@@ -140,17 +140,17 @@ def session_00011_line_229():
     >>> p(G(source='bob'))
     [friend(bob, alice),
      friend(bob, sal),
-     coworker((bob), (alice, jane), (True, True)),
-     coworker((bob, alice), (jane), (True)),
+     manages((bob), (alice, jane), (True, True)),
+     manages((bob, alice), (jane), (True)),
      distance(bob, alice, 422)]
     """
 
 
 def session_00012_line_240():
     r"""
-    >>> p(G(relation='coworker'))
-    [coworker((bob), (alice, jane), (True, True)),
-     coworker((bob, alice), (jane), (True))]
+    >>> p(G(relation='manages'))
+    [manages((bob), (alice, jane), (True, True)),
+     manages((bob, alice), (jane), (True))]
 
     """
 
@@ -159,17 +159,17 @@ def session_00013_line_249():
     r"""
     >>> p(G(destination='jane'))
     [friend(alice, jane),
-     coworker((bob), (alice, jane), (True, True)),
-     coworker((bob, alice), (jane), (True)),
+     manages((bob), (alice, jane), (True, True)),
+     manages((bob, alice), (jane), (True)),
      distance(alice, jane, 42)]
     """
 
 
 def session_00014_line_261():
     r"""
-    >>> p(G(source='bob', relation='coworker', destination='jane'))
-    [coworker((bob), (alice, jane), (True, True)),
-     coworker((bob, alice), (jane), (True))]
+    >>> p(G(source='bob', relation='manages', destination='jane'))
+    [manages((bob), (alice, jane), (True, True)),
+     manages((bob, alice), (jane), (True))]
     """
 
 
@@ -197,13 +197,14 @@ def session_00017_line_303():
     >>> G.add_relation('debruijn', incidence=True)
     >>> def kmer(t, k=3): 
     ...     return (tuple(map("".join, windowed(i, k-1))) for i in map("".join, windowed(t, k)))
+
     >>> G.debruijn += kmer('ATCGATCGGATGACAGACACAATTC')
     >>> G.debruijn.draw(graph_attr=dict(layout='circo'), weights=False, concentrate=True, filename='docs/imgs/G_debruijn_1')
     <graphviz...>
     """
 
 
-def session_00018_line_319():
+def session_00018_line_320():
     r"""
     >>> M = G.debruijn(INT64.plus_pair)
     >>> gviz.draw_graph(M, weights=True, label_vector=G.debruijn.label_vector(M), 
@@ -212,7 +213,7 @@ def session_00018_line_319():
     """
 
 
-def session_00019_line_332():
+def session_00019_line_333():
     r"""
     >>> from Bio import SeqIO, Entrez
     >>> Entrez.email = "info@graphegon.com"
@@ -229,22 +230,4 @@ def session_00019_line_332():
     >>> gviz.draw_graph(M, weights=True, labels=True, label_vector=G.circovirus.label_vector(M),
     ...                 graph_attr=dict(layout='sfdp'), filename='docs/imgs/G_circovirus_1')
     <graphviz...>
-    """
-
-
-def session_00020_line_365():
-    r"""
-    >>> G
-    <Graph [friend, coworker, distance, karate, debruijn, circovirus]: 750>
-
-    >>> from graphony.lib import pagerank
-    >>> G.add_relation('PR')
-    >>> I = "BCDEFDEEFGGHHIIJK"
-    >>> J = "CBBBBADFEBEBEBEEE"
-    >>> G.PR += zip(I, J)
-    >>> rank, iters = pagerank(G.PR(cast=FP64))
-
-    >>> G.PR.draw(weights=False, filename='docs/imgs/G_PR_1', rankdir='BT',
-    ...           label_vector=rank, label_width=4)
-    <graphviz.dot.Digraph object at ...>
     """

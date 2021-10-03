@@ -154,19 +154,19 @@ Matrices](https://en.wikipedia.org/wiki/Incidence_matrix) which can
 represent non-simple graphs like the hypergraph shown here:
 
 ```python3
->>> G.add_relation('coworker', incidence=True)
+>>> G.add_relation('manages', incidence=True)
 ```
 
 New hyperedges can be defined by passing a nested tuple of nodes as
 either the source or destinations, or both, for a hyperedge.
 
 ```python3
->>> G.coworker += [('bob', ('jane', 'alice')), (('alice', 'bob'), 'jane')]
+>>> G.manages += [('bob', ('rick', 'alice')), (('alice', 'bob'), 'jane')]
 
->>> G.coworker.draw(weights=True, filename='docs/imgs/G_coworker_1')
+>>> G.manages.draw(weights=True, filename='docs/imgs/G_manages_1')
 <graphviz.dot.Digraph object at ...>
 ```
-![G_coworker_1.png](docs/imgs/G_coworker_1.png)
+![G_manages_1.png](docs/imgs/G_manages_1.png)
 
 Here a hyperedge with one source and two destinations is created from
 bob to jane and alice, and another with two sources and one
@@ -197,7 +197,7 @@ GraphBLAS type if you want different precision or a custom type.
 # Graph Querying
 
 Currently our graph looks like this, it contains 3 relations,
-`friend`, `coworker` and `distance`:
+`friend`, `manages` and `distance`:
 
 ```python3
 >>> G.draw(weights=True, filename='docs/imgs/G_all_1')
@@ -217,8 +217,8 @@ three is None, which acts as a wildcard to matches all values.
  friend(bob, sal),
  friend(alice, jane),
  friend(alice, rick),
- coworker((bob), (alice, jane), (True, True)),
- coworker((bob, alice), (jane), (True)),
+ manages((bob), (alice, jane), (True, True)),
+ manages((bob, alice), (jane), (True)),
  distance(bob, alice, 422),
  distance(alice, jane, 42)]
 ```
@@ -229,17 +229,17 @@ Only print edges where `bob` is the src:
 >>> p(G(source='bob'))
 [friend(bob, alice),
  friend(bob, sal),
- coworker((bob), (alice, jane), (True, True)),
- coworker((bob, alice), (jane), (True)),
+ manages((bob), (alice, jane), (True, True)),
+ manages((bob, alice), (jane), (True)),
  distance(bob, alice, 422)]
 ```
 
-Only print edges where `coworker` is the relation:
+Only print edges where `manages` is the relation:
 
 ```python3
->>> p(G(relation='coworker'))
-[coworker((bob), (alice, jane), (True, True)),
- coworker((bob, alice), (jane), (True))]
+>>> p(G(relation='manages'))
+[manages((bob), (alice, jane), (True, True)),
+ manages((bob, alice), (jane), (True))]
 
 ```
 
@@ -248,19 +248,19 @@ Only print edges where `jane` is the destination:
 ```python3
 >>> p(G(destination='jane'))
 [friend(alice, jane),
- coworker((bob), (alice, jane), (True, True)),
- coworker((bob, alice), (jane), (True)),
+ manages((bob), (alice, jane), (True, True)),
+ manages((bob, alice), (jane), (True)),
  distance(alice, jane, 42)]
 ```
 
-Only print edges that match that `bob` is a `coworker` of `jane`.
+Only print edges that match that `bob` is a `manages` of `jane`.
 Note in this case it returns two hyperedges, as in both cases bob is a
 source and jane is a destination:
 
 ```python3
->>> p(G(source='bob', relation='coworker', destination='jane'))
-[coworker((bob), (alice, jane), (True, True)),
- coworker((bob, alice), (jane), (True))]
+>>> p(G(source='bob', relation='manages', destination='jane'))
+[manages((bob), (alice, jane), (True, True)),
+ manages((bob, alice), (jane), (True))]
 ```
 
 # Loading Graphs from SQL
@@ -304,6 +304,7 @@ of nodes.
 >>> G.add_relation('debruijn', incidence=True)
 >>> def kmer(t, k=3): 
 ...     return (tuple(map("".join, windowed(i, k-1))) for i in map("".join, windowed(t, k)))
+
 >>> G.debruijn += kmer('ATCGATCGGATGACAGACACAATTC')
 >>> G.debruijn.draw(graph_attr=dict(layout='circo'), weights=False, concentrate=True, filename='docs/imgs/G_debruijn_1')
 <graphviz...>
