@@ -52,7 +52,7 @@ from pygraphblas import FP64, INT64, gviz
 from graphony import Graph, Node
 p = lambda r: pprint.pprint(sorted(list(r)))
 pgdata, conn = postgresql.setup()
-postgresql.psql(f'-d "{conn}" -f dbinit/01.sql -f dbinit/02.sql')
+postgresql.psql(f'-d "{conn}" -f dbinit/01_init_graphony.sql -f dbinit/02_karate_demo.sql')
 G = Graph(conn)
 ```
 
@@ -217,7 +217,7 @@ three is None, which acts as a wildcard to matches all values.
  friend(bob, sal),
  friend(alice, jane),
  friend(alice, rick),
- manages((bob), (alice, jane), (True, True)),
+ manages((bob), (alice, rick), (True, True)),
  manages((bob, alice), (jane), (True)),
  distance(bob, alice, 422),
  distance(alice, jane, 42)]
@@ -229,7 +229,7 @@ Only print edges where `bob` is the src:
 >>> p(G(source='bob'))
 [friend(bob, alice),
  friend(bob, sal),
- manages((bob), (alice, jane), (True, True)),
+ manages((bob), (alice, rick), (True, True)),
  manages((bob, alice), (jane), (True)),
  distance(bob, alice, 422)]
 ```
@@ -238,7 +238,7 @@ Only print edges where `manages` is the relation:
 
 ```python3
 >>> p(G(relation='manages'))
-[manages((bob), (alice, jane), (True, True)),
+[manages((bob), (alice, rick), (True, True)),
  manages((bob, alice), (jane), (True))]
 
 ```
@@ -248,7 +248,6 @@ Only print edges where `jane` is the destination:
 ```python3
 >>> p(G(destination='jane'))
 [friend(alice, jane),
- manages((bob), (alice, jane), (True, True)),
  manages((bob, alice), (jane), (True)),
  distance(alice, jane, 42)]
 ```
@@ -259,8 +258,7 @@ source and jane is a destination:
 
 ```python3
 >>> p(G(source='bob', relation='manages', destination='jane'))
-[manages((bob), (alice, jane), (True, True)),
- manages((bob, alice), (jane), (True))]
+[manages((bob, alice), (jane), (True))]
 ```
 
 # Loading Graphs from SQL

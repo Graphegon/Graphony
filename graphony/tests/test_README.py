@@ -15,7 +15,7 @@ def _phm_setup_doctest_teardown(doctest_namespace, managenamespace):
     from graphony import Graph, Node
     p = lambda r: pprint.pprint(sorted(list(r)))
     pgdata, conn = postgresql.setup()
-    postgresql.psql(f'-d "{conn}" -f dbinit/01.sql -f dbinit/02.sql')
+    postgresql.psql(f'-d "{conn}" -f dbinit/01_init_graphony.sql -f dbinit/02_karate_demo.sql')
     G = Graph(conn)
 
     managenamespace(operation="update", additions=locals())
@@ -24,7 +24,7 @@ def _phm_setup_doctest_teardown(doctest_namespace, managenamespace):
     for k, v in additions.items():
         doctest_namespace[k] = v
     yield
-    # teardown code line 353.
+    # teardown code line 351.
     postgresql.teardown(pgdata)
 
     managenamespace(operation="clear")
@@ -128,7 +128,7 @@ def session_00010_line_215():
      friend(bob, sal),
      friend(alice, jane),
      friend(alice, rick),
-     manages((bob), (alice, jane), (True, True)),
+     manages((bob), (alice, rick), (True, True)),
      manages((bob, alice), (jane), (True)),
      distance(bob, alice, 422),
      distance(alice, jane, 42)]
@@ -140,7 +140,7 @@ def session_00011_line_229():
     >>> p(G(source='bob'))
     [friend(bob, alice),
      friend(bob, sal),
-     manages((bob), (alice, jane), (True, True)),
+     manages((bob), (alice, rick), (True, True)),
      manages((bob, alice), (jane), (True)),
      distance(bob, alice, 422)]
     """
@@ -149,7 +149,7 @@ def session_00011_line_229():
 def session_00012_line_240():
     r"""
     >>> p(G(relation='manages'))
-    [manages((bob), (alice, jane), (True, True)),
+    [manages((bob), (alice, rick), (True, True)),
      manages((bob, alice), (jane), (True))]
 
     """
@@ -159,21 +159,19 @@ def session_00013_line_249():
     r"""
     >>> p(G(destination='jane'))
     [friend(alice, jane),
-     manages((bob), (alice, jane), (True, True)),
      manages((bob, alice), (jane), (True)),
      distance(alice, jane, 42)]
     """
 
 
-def session_00014_line_261():
+def session_00014_line_260():
     r"""
     >>> p(G(source='bob', relation='manages', destination='jane'))
-    [manages((bob), (alice, jane), (True, True)),
-     manages((bob, alice), (jane), (True))]
+    [manages((bob, alice), (jane), (True))]
     """
 
 
-def session_00015_line_273():
+def session_00015_line_271():
     r"""
     >>> G.add_relation('karate')
     >>> G.karate += G.sql("select 'k_' || s_id, 'k_' || d_id from graphony.karate")
@@ -184,14 +182,14 @@ def session_00015_line_273():
     """
 
 
-def session_00016_line_286():
+def session_00016_line_284():
     r"""
     >>> len(G.karate)
     78
     """
 
 
-def session_00017_line_303():
+def session_00017_line_301():
     r"""
     >>> from more_itertools import windowed
     >>> G.add_relation('debruijn', incidence=True)
@@ -204,7 +202,7 @@ def session_00017_line_303():
     """
 
 
-def session_00018_line_320():
+def session_00018_line_318():
     r"""
     >>> M = G.debruijn(INT64.plus_pair)
     >>> gviz.draw_graph(M, weights=True, label_vector=G.debruijn.label_vector(M), 
@@ -213,7 +211,7 @@ def session_00018_line_320():
     """
 
 
-def session_00019_line_333():
+def session_00019_line_331():
     r"""
     >>> from Bio import SeqIO, Entrez
     >>> Entrez.email = "info@graphegon.com"
