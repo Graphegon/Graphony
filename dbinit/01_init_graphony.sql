@@ -5,7 +5,7 @@ CREATE SCHEMA graphony;
 CREATE TABLE graphony.hyperspace(
     id BIGSERIAL,
     name TEXT,
-    props JSONB
+    attrs JSONB
     );
 
 CREATE TABLE graphony.node(
@@ -13,7 +13,7 @@ CREATE TABLE graphony.node(
     UNIQUE (name) INCLUDE (id)
     ) INHERITS (graphony.hyperspace);
 
-CREATE TABLE graphony.relation(
+CREATE TABLE graphony.property(
     pytype BYTEA NOT NULL,
     UNIQUE (name) INCLUDE (id),
     PRIMARY KEY (id) INCLUDE (name)

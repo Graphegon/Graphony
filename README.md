@@ -10,7 +10,7 @@ Matrices](http://graphblas.org) and node and edge properties in
 [PostgreSQL](https://postgresql.org).
 
 Graphony's primary role is to easily construnct graph matrices and
-manage symbolic names and properties for graphs, nodes, relations and
+manage symbolic names and properties for graphs, nodes, properties and
 edges, and can be used to easily construct, save and manage graph data
 in a simple project directory format.
 
@@ -61,33 +61,33 @@ to demonstrate the features of Graphony.  A Graphony `Graph` consists
 of four concepts:
 
   - `Graph`: Top level object that contains all graph data in
-    sub-graphs called *relations*.
+    sub-graphs called *properties*.
 
-  - `Relation`: A named, typed sub-graph that holds edges.  A
-    relation consists of two GraphBLAS [Incidence
+  - `Property`: A named, typed sub-graph that holds edges.  A
+    property consists of two GraphBLAS [Incidence
     Matrices](https://en.wikipedia.org/wiki/Incidence_matrix) that can
     be multiplied to project an adjacency with themselves, or any
-    other combination of relations.
+    other combination of properties.
 
-  - `Edge`: Relation edges can be simple point to point edges or
-    hyperedges that represent relations between multiple incoming and
+  - `Edge`: Property edges can be simple point to point edges or
+    hyperedges that represent properties between multiple incoming and
     outgoing nodes.
 
   - `Node`: A node in the graph.
 
 # Simple Graphs
 
-Graphs consist of multiple typed subgraphs called *relations*.  All
-relations share node ids across a Graph object, but each relation can
+Graphs consist of multiple typed subgraphs called *properties*.  All
+properties share node ids across a Graph object, but each property can
 store edge weights of different data types like int, float, or bool.
 Internally, "simple" graphs (non-hyper) are stored as [Adjacency
 Matrices](https://en.wikipedia.org/wiki/Adjacency_matrix).
 
-Before you can add an edge, a relation to hold it must be declared
+Before you can add an edge, a property to hold it must be declared
 first.  The default edge type is `bool` if you don't specify one:
 
 ```python3
->>> G.add_relation('friend')
+>>> G.add_property('friend')
 ```
 
 Edges can be added directly into the Graph with the `+=` method.  In
@@ -104,12 +104,12 @@ source and a destination:
 
 Using strings like `'bob'` and `'alice'` as edge endpoints creates new
 graph nodes automatically.  You can also create nodes explicity and
-provide properties for them:
+provide attributes for them:
 
 ```python3
 >>> jane = Node(G, 'jane', favorite_color='blue')
->>> jane.props
-{'favorite_color': 'blue'}
+>>> jane.favorite_color
+'blue'
 >>> G.friend += ('alice', jane)
 
 >>> G.friend.draw(weights=False, filename='docs/imgs/G_friend_2')
@@ -117,7 +117,7 @@ provide properties for them:
 ```
 ![G_friend_2.png](docs/imgs/G_friend_2.png)
 
-Now there are two edges in the `friend` relation, one from bob to
+Now there are two edges in the `friend` property, one from bob to
 alice and the other from alice to jane.
 
 ```python3
@@ -125,8 +125,8 @@ alice and the other from alice to jane.
 [friend(bob, alice), friend(alice, jane)]
 ```
 
-An iterator of relation tuples can also be provided to the `+=`
-operator which will consume them and add them to the relation:
+An iterator of property tuples can also be provided to the `+=`
+operator which will consume them and add them to the property:
 
 ```python3
 >>> G.friend += [('bob', 'sal'), ('alice', 'rick')]
@@ -147,14 +147,14 @@ vertices in constrast to a simple graph, shown above, where an edge
 has exactly two endpoints and can only connect only one vertex to one
 other vertex.
 
-In Graphony a hypergraph can created in any *incidence* relation by
-passing the `incidence=True` flag.  This causes the relation to be
+In Graphony a hypergraph can created in any *incidence* property by
+passing the `incidence=True` flag.  This causes the property to be
 stored internally as two [Incidence
 Matrices](https://en.wikipedia.org/wiki/Incidence_matrix) which can
 represent non-simple graphs like the hypergraph shown here:
 
 ```python3
->>> G.add_relation('manages', incidence=True)
+>>> G.add_property('manages', incidence=True)
 ```
 
 New hyperedges can be defined by passing a nested tuple of nodes as
@@ -174,14 +174,14 @@ destination is created from alice and bob to jane.
 
 # Property Graph
 
-Graphs can have any number of relations, each with a particular
+Graphs can have any number of properties, each with a particular
 GraphBLAS type.  In general this is referred to as a Property Graph.
-As shown above the default relation type is `bool` which created
+As shown above the default property type is `bool` which created
 unweighted edges, but graph edge types can be specified on a
-per-relation basis:
+per-property basis:
 
 ```python3
->>> G.add_relation('distance', int)
+>>> G.add_property('distance', int)
 >>> G.distance += [('bob', 'alice', 422), ('alice', 'jane', 42)]
 
 >>> G.distance.draw(weights=True, filename='docs/imgs/G_distance_2')
@@ -196,7 +196,7 @@ GraphBLAS type if you want different precision or a custom type.
 
 # Graph Querying
 
-Currently our graph looks like this, it contains 3 relations,
+Currently our graph looks like this, it contains 3 properties,
 `friend`, `manages` and `distance`:
 
 ```python3
@@ -208,7 +208,7 @@ Currently our graph looks like this, it contains 3 relations,
 
 Graphs have a call interface like `G(...)` that can be used to query
 individual edges.  A query consists of three optional arguments for
-`source`, `relation` and `destination`.  The default value for all
+`source`, `property` and `destination`.  The default value for all
 three is None, which acts as a wildcard to matches all values.
 
 ```python3
@@ -234,10 +234,10 @@ Only print edges where `bob` is the src:
  distance(bob, alice, 422)]
 ```
 
-Only print edges where `manages` is the relation:
+Only print edges where `manages` is the property:
 
 ```python3
->>> p(G(relation='manages'))
+>>> p(G(property='manages'))
 [manages((bob), (alice, rick), (True, True)),
  manages((bob, alice), (jane), (True))]
 
@@ -257,7 +257,7 @@ Note in this case it returns two hyperedges, as in both cases bob is a
 source and jane is a destination:
 
 ```python3
->>> p(G(source='bob', relation='manages', destination='jane'))
+>>> p(G(source='bob', property='manages', destination='jane'))
 [manages((bob, alice), (jane), (True))]
 ```
 
@@ -268,7 +268,7 @@ Graphony offers a shorthand helper for this.  Any query that produces
 2 or 3 columns can be used to produce edges into the graph.
 
 ```python3
->>> G.add_relation('karate')
+>>> G.add_property('karate')
 >>> G.karate += G.sql("select 'k_' || s_id, 'k_' || d_id from graphony.karate")
 
 >>> G.karate.draw(weights=False, filename='docs/imgs/G_karate_3',
@@ -277,7 +277,7 @@ Graphony offers a shorthand helper for this.  Any query that produces
 ```
 ![G_karate_3.png](docs/imgs/G_karate_3.png)
 
-All the edges are in the karate relation, as defined in the sql
+All the edges are in the karate property, as defined in the sql
 query above:
 
 ```python3
@@ -299,7 +299,7 @@ of nodes.
 
 ```python3
 >>> from more_itertools import windowed
->>> G.add_relation('debruijn', incidence=True)
+>>> G.add_property('debruijn', incidence=True)
 >>> def kmer(t, k=3): 
 ...     return (tuple(map("".join, windowed(i, k-1))) for i in map("".join, windowed(t, k)))
 
@@ -312,7 +312,7 @@ of nodes.
 Once the graph is built up it can be "collapsed" into a weighted
 graph, where the multi-edges between nodes are summed up into a single
 edge.  In the GraphBLAS this can be accomplished by calling the
-relations with a semiring:
+properties with a semiring:
 
 ```python3
 >>> M = G.debruijn(INT64.plus_pair)
@@ -334,7 +334,7 @@ create an weighted De Bruijn graph of a Circovirus:
 >>> record = SeqIO.read(handle, "genbank")
 >>> handle.close()
 >>> from more_itertools import windowed
->>> G.add_relation('circovirus', incidence=True)
+>>> G.add_property('circovirus', incidence=True)
 >>> def kmer(t, k=3): 
 ...     return (tuple(map("".join, windowed(i, k-1))) for i in map("".join, windowed(t, k)))
 >>> seq = str(record.seq)

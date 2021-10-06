@@ -48,7 +48,7 @@ def session_00000():
 
 def session_00001_line_90():
     r"""
-    >>> G.add_relation('friend')
+    >>> G.add_property('friend')
     """
 
 
@@ -64,8 +64,8 @@ def session_00002_line_98():
 def session_00003_line_110():
     r"""
     >>> jane = Node(G, 'jane', favorite_color='blue')
-    >>> jane.props
-    {'favorite_color': 'blue'}
+    >>> jane.favorite_color
+    'blue'
     >>> G.friend += ('alice', jane)
 
     >>> G.friend.draw(weights=False, filename='docs/imgs/G_friend_2')
@@ -91,7 +91,7 @@ def session_00005_line_132():
 
 def session_00006_line_157():
     r"""
-    >>> G.add_relation('manages', incidence=True)
+    >>> G.add_property('manages', incidence=True)
     """
 
 
@@ -106,7 +106,7 @@ def session_00007_line_164():
 
 def session_00008_line_184():
     r"""
-    >>> G.add_relation('distance', int)
+    >>> G.add_property('distance', int)
     >>> G.distance += [('bob', 'alice', 422), ('alice', 'jane', 42)]
 
     >>> G.distance.draw(weights=True, filename='docs/imgs/G_distance_2')
@@ -148,7 +148,7 @@ def session_00011_line_229():
 
 def session_00012_line_240():
     r"""
-    >>> p(G(relation='manages'))
+    >>> p(G(property='manages'))
     [manages((bob), (alice, rick), (True, True)),
      manages((bob, alice), (jane), (True))]
 
@@ -166,14 +166,14 @@ def session_00013_line_249():
 
 def session_00014_line_260():
     r"""
-    >>> p(G(source='bob', relation='manages', destination='jane'))
+    >>> p(G(source='bob', property='manages', destination='jane'))
     [manages((bob, alice), (jane), (True))]
     """
 
 
 def session_00015_line_271():
     r"""
-    >>> G.add_relation('karate')
+    >>> G.add_property('karate')
     >>> G.karate += G.sql("select 'k_' || s_id, 'k_' || d_id from graphony.karate")
 
     >>> G.karate.draw(weights=False, filename='docs/imgs/G_karate_3',
@@ -192,7 +192,7 @@ def session_00016_line_284():
 def session_00017_line_301():
     r"""
     >>> from more_itertools import windowed
-    >>> G.add_relation('debruijn', incidence=True)
+    >>> G.add_property('debruijn', incidence=True)
     >>> def kmer(t, k=3): 
     ...     return (tuple(map("".join, windowed(i, k-1))) for i in map("".join, windowed(t, k)))
 
@@ -219,7 +219,7 @@ def session_00019_line_331():
     >>> record = SeqIO.read(handle, "genbank")
     >>> handle.close()
     >>> from more_itertools import windowed
-    >>> G.add_relation('circovirus', incidence=True)
+    >>> G.add_property('circovirus', incidence=True)
     >>> def kmer(t, k=3): 
     ...     return (tuple(map("".join, windowed(i, k-1))) for i in map("".join, windowed(t, k)))
     >>> seq = str(record.seq)

@@ -1,4 +1,4 @@
-"""Relation objects.
+"""Property objects.
 """
 from functools import total_ordering
 
@@ -10,9 +10,9 @@ from .node import Node
 
 
 @total_ordering
-class Relation:
+class Property:
     """
-    Relation object.
+    Property object.
     """
 
     def __init__(
@@ -41,7 +41,7 @@ class Relation:
             self.B = None
 
     def add(self, source, destination, weight=True, eid=None, A_weight=True):
-        """Add an edge to this relation."""
+        """Add an edge to this property."""
         if not self.incidence:
             source = self.graph.get_node(source)
             destination = self.graph.get_node(destination)
@@ -84,11 +84,11 @@ class Relation:
     def __eq__(self, other):
         return self.rid == other.rid
 
-    def __iadd__(self, relation):
-        if isinstance(relation, tuple):
-            self.add(*relation)
+    def __iadd__(self, property):
+        if isinstance(property, tuple):
+            self.add(*property)
         else:
-            for i in relation:
+            for i in property:
                 self.add(*i)
         return self
 

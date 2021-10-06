@@ -4,7 +4,7 @@ import sys
 import doctest as dt
 
 from .graph import Graph
-from .relation import Relation
+from .property import Property
 from .node import Node
 from .edge import Edge
 from . import graph
